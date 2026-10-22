@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Quản Lý Lịch Hẹn Giám Đốc</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-slate-900 text-white shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <span class="text-2xl">🛡️</span>
+        <div>
+          <h1 class="text-base font-bold leading-tight">Bàn Làm Việc Trợ Lý Giám Đốc</h1>
+          <p class="text-xs text-slate-400">Kiểm tra thông tin DN, duyệt lịch và gửi email xác nhận</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="/" target="_blank" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+          🌐 Xem Trang Khách Đặt
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    
+    <!-- Top Stats & Actions -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+      <div class="flex items-center gap-2">
+        <button onclick="setFilter('all')" id="btnFilterAll" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white shadow-sm transition">
+          Tất cả (<span id="countAll">0</span>)
+        </button>
+        <button onclick="setFilter('pending')" id="btnFilterPending" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-700 hover:bg-slate-200 shadow-sm transition">
+          ⏳ Chờ duyệt (<span id="countPending">0</span>)
+        </button>
+        <button onclick="setFilter('confirmed')" id="btnFilterConfirmed" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-700 hover:bg-slate-200 shadow-sm transition">
+          ✓ Đã duyệt (<span id="countConfirmed">0</span>)
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="openBlockSlotModal()" class="px-3.5 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-sm transition flex items-center gap-1.5">
+          🚫 Khóa Giờ Bận Đột Xuất Của Sếp
+        </button>
+        <button onclick="loadBookings()" class="px-3 py-2 text-xs font-medium bg-white hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-300 transition">
+          🔄 Tải lại
+        </button>
+      </div>
+    </div>
+
+    <!-- Booking Cards Container -->
+    <div id="bookingsList" class="space-y-4">
+      <!-- Dynamic list -->
+    </div>
+
+  </main>
+
+  <!-- MODAL DUYỆT & GỬI EMAIL -->
+  <div id="actionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95">
+      
+      <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+        <div>
+          <h3 id="modalActionTitle" class="font-bold text-base">Phê Duyệt Lịch Hẹn & Gửi Thư</h3>
+          <p id="modalActionSubtitle" class="text-xs text-slate-300">Gửi thông báo tới Doanh nghiệp</p>
+        </div>
+        <button onclick="closeActionModal()" class="text-slate-400 hover:text-white text-2xl font-semibold leading-none">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-4 overflow-y-auto">
+        <input type="hidden" id="currentBookingId">
+        <input type="hidden" id="currentActionType" value="confirm">
+
+        <!-- Info summary -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-1 text-slate-700">
+          <p><strong>Doanh nghiệp:</strong> <span id="actCompany">--</span> (MST: <span id="actTax">--</span>)</p>
+          <p><strong>Người đại diện:</strong> <span id="actContact">--</span> - SĐT: <span id="actPhone">--</span></p>
+          <p><strong>Hộp thư nhận:</strong> <span id="actEmail" class="text-blue-600 font-semibold">--</span></p>
+          <p><strong>Thời gian xin gặp:</strong> <span id="actDateTime" class="font-bold text-slate-900">--</span></p>
+          <p><strong>Nội dung trao đổi:</strong> <span id="actPurpose">--</span></p>
+        </div>
+
+        <!-- Choose Email Template -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Chọn Mẫu Email Gửi Doanh Nghiệp:</label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <label class="border border-slate-200 rounded-xl p-2.5 text-xs cursor-pointer hover:border-blue-500 flex items-start gap-2 bg-white has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/50">
+              <input type="radio" name="emailTemplate" value="in_person" checked onchange="updateEmailPreview()" class="mt-0.5 text-blue-600">
+              <div>
+                <p class="font-bold text-slate-800">🏢 Gặp tại Văn phòng</p>
+                <p class="text-[11px] text-slate-500">Kèm địa chỉ, tầng, hầm gửi xe</p>
+              </div>
+            </label>
+            <label class="border border-slate-200 rounded-xl p-2.5 text-xs cursor-pointer hover:border-blue-500 flex items-start gap-2 bg-white has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/50">
+              <input type="radio" name="emailTemplate" value="online" onchange="updateEmailPreview()" class="mt-0.5 text-blue-600">
+              <div>
+                <p class="font-bold text-slate-800">💻 Họp Trực Tuyến</p>
+                <p class="text-[11px] text-slate-500">Kèm link Google Meet / Zoom</p>
+              </div>
+            </label>
+            <label class="border border-slate-200 rounded-xl p-2.5 text-xs cursor-pointer hover:border-blue-500 flex items-start gap-2 bg-white has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50/50">
+              <input type="radio" name="emailTemplate" value="reschedule" onchange="updateEmailPreview()" class="mt-0.5 text-rose-600">
+              <div>
+                <p class="font-bold text-rose-700">❌ Từ chối / Đổi giờ</p>
+                <p class="text-[11px] text-slate-500">Báo sếp bận công tác</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Custom notes in email -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Ghi chú thêm trong Email (Tùy chỉnh nếu cần):</label>
+          <input type="text" id="customEmailNote" oninput="updateEmailPreview()" placeholder="VD: Nhớ mang theo bản in hợp đồng mẫu..." 
+            class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <!-- Email Preview -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1 flex justify-between items-center">
+            <span>Nội Dung Thư Sẽ Gửi Thẳng Tới Email Khách:</span>
+            <span class="text-[11px] text-emerald-600 font-medium">✓ Đã tối ưu định dạng</span>
+          </label>
+          <pre id="emailPreviewBox" class="w-full h-40 bg-slate-900 text-slate-200 text-xs p-3.5 rounded-xl overflow-y-auto whitespace-pre-wrap font-mono"></pre>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+          <button type="button" onclick="closeActionModal()" class="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-lg font-medium">
+            Hủy bỏ
+          </button>
+          <button type="button" onclick="confirmAndSend()" id="btnConfirmSend" 
+            class="px-5 py-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold shadow-md shadow-emerald-200 transition flex items-center gap-1.5">
+            ✉️ Xác Nhận & Gửi Thư Tới Khách
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL KHÓA GIỜ ĐỘT XUẤT -->
+  <div id="blockModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
+      <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+        <span>🚫</span> Khóa Giờ Bận Của Giám Đốc
+      </h3>
+      <p class="text-xs text-slate-500">Khung giờ bị khóa sẽ chuyển sang trạng thái <strong>Đã có lịch</strong> để khách không thể bấm đặt được.</p>
+      
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Chọn Ngày Khóa:</label>
+          <input type="date" id="blockDate" class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 font-semibold">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Chọn Khung Giờ:</label>
+          <select id="blockSlot" class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 font-medium">
+            <option value="08:30 - 09:30">08:30 - 09:30</option>
+            <option value="09:45 - 10:45">09:45 - 10:45</option>
+            <option value="11:00 - 12:00">11:00 - 12:00</option>
+            <option value="14:00 - 15:00">14:00 - 15:00</option>
+            <option value="15:15 - 16:15">15:15 - 16:15</option>
+            <option value="16:30 - 17:30">16:30 - 17:30</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Lý do khóa:</label>
+          <input type="text" id="blockReason" value="Giám đốc bận họp HĐQT / Công tác nội bộ" class="w-full text-xs border border-slate-300 rounded-lg px-3 py-2">
+        </div>
+      </div>
+
+      <div class="pt-3 flex justify-end gap-2">
+        <button onclick="closeBlockModal()" class="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-lg">Đóng</button>
+        <button onclick="submitBlockSlot()" class="px-4 py-2 text-xs bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg shadow-sm">Khóa Khung Giờ</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allBookings = [];
+    let currentFilter = 'all';
+    let selectedBooking = null;
+
+    async function loadBookings() {
+      const container = document.getElementById('bookingsList');
+      container.innerHTML = '<div class="py-12 text-center text-slate-400">Đang tải danh sách lịch hẹn...</div>';
+
+      try {
+        const res = await fetch('/api/admin/bookings');
+        const data = await res.json();
+        allBookings = data.bookings;
+        updateCounts();
+        renderBookings();
+      } catch (err) {
+        container.innerHTML = '<div class="py-12 text-center text-rose-500">Lỗi khi tải dữ liệu!</div>';
+      }
+    }
+
+    function updateCounts() {
+      document.getElementById('countAll').textContent = allBookings.length;
+      document.getElementById('countPending').textContent = allBookings.filter(b => b.status === 'pending').length;
+      document.getElementById('countConfirmed').textContent = allBookings.filter(b => b.status === 'confirmed').length;
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      ['All', 'Pending', 'Confirmed'].forEach(f => {
+        const btn = document.getElementById(`btnFilter${f}`);
+        if (f.toLowerCase() === filter) {
+          btn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white shadow-sm transition";
+        } else {
+          btn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-700 hover:bg-slate-200 shadow-sm transition";
+        }
+      });
+      renderBookings();
+    }
+
+    function renderBookings() {
+      const container = document.getElementById('bookingsList');
+      const filtered = allBookings.filter(b => currentFilter === 'all' || b.status === currentFilter);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl p-12 text-center border border-slate-200 text-slate-400">
+            Không có lịch hẹn nào trong mục này.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+      filtered.forEach(b => {
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl p-5 border shadow-sm transition flex flex-col md:flex-row justify-between gap-5 ";
+
+        let statusBadge = '';
+        if (b.status === 'pending') {
+          card.className += "border-amber-200 bg-amber-50/20";
+          statusBadge = '<span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5">⏳ Chờ duyệt</span>';
+        } else if (b.status === 'confirmed') {
+          card.className += "border-emerald-200";
+          statusBadge = '<span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5">✓ Đã duyệt & Gửi mail</span>';
+        } else {
+          card.className += "border-slate-200 opacity-60";
+          statusBadge = '<span class="bg-rose-100 text-rose-800 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5">✕ Đã từ chối</span>';
+        }
+
+        card.innerHTML = `
+          <div class="space-y-3 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              ${statusBadge}
+              <span class="text-sm font-bold text-slate-900">${b.company_name}</span>
+              <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">MST: ${b.tax_code}</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs text-slate-600">
+              <div><strong>⏰ Thời gian:</strong> <span class="text-blue-600 font-semibold">${b.time_slot}</span> ngày <strong>${b.meeting_date}</strong></div>
+              <div><strong>👤 Người đại diện:</strong> ${b.contact_person} (${b.phone})</div>
+              <div><strong>✉️ Hộp thư:</strong> <span class="text-slate-800 font-mono">${b.email}</span></div>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs text-slate-700 space-y-1">
+              <p><strong>🎯 Mục đích:</strong> ${b.purpose || 'Không ghi'}</p>
+              <p><strong>👥 Số người tham dự:</strong> ${b.attendees_count} người</p>
+              ${b.questions ? `<p><strong>📎 Tài liệu/Câu hỏi gửi trước:</strong> ${b.questions}</p>` : ''}
+            </div>
+
+            ${b.email_sent ? `
+              <div class="text-[11px] text-slate-500 font-mono bg-slate-100 p-2 rounded border border-slate-200">
+                <strong>Nội dung thư đã gửi:</strong> ${b.email_sent.substring(0, 100)}...
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="flex md:flex-col justify-end md:justify-center items-end gap-2 border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-5 shrink-0">
+            ${b.status === 'pending' ? `
+              <button onclick="openActionModal(${b.id}, 'confirm')" class="w-full px-4 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm transition">
+                ✓ Phê Duyệt & Gửi Mail
+              </button>
+              <button onclick="openActionModal(${b.id}, 'reject')" class="w-full px-4 py-2 text-xs font-semibold bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 rounded-xl transition">
+                ✕ Từ chối / Đổi giờ
+              </button>
+            ` : `
+              <button onclick="openActionModal(${b.id}, 'confirm')" class="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg border border-slate-200">
+                Gửi lại email
+              </button>
+            `}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openActionModal(id, actionType) {
+      selectedBooking = allBookings.find(b => b.id === id);
+      if (!selectedBooking) return;
+
+      document.getElementById('currentBookingId').value = id;
+      document.getElementById('currentActionType').value = actionType;
+
+      document.getElementById('actCompany').textContent = selectedBooking.company_name;
+      document.getElementById('actTax').textContent = selectedBooking.tax_code;
+      document.getElementById('actContact').textContent = selectedBooking.contact_person;
+      document.getElementById('actPhone').textContent = selectedBooking.phone;
+      document.getElementById('actEmail').textContent = selectedBooking.email;
+      document.getElementById('actDateTime').textContent = `${selectedBooking.time_slot} (Ngày ${selectedBooking.meeting_date})`;
+      document.getElementById('actPurpose').textContent = selectedBooking.purpose;
+
+      if (actionType === 'reject') {
+        document.querySelector('input[name="emailTemplate"][value="reschedule"]').checked = true;
+      } else {
+        document.querySelector('input[name="emailTemplate"][value="in_person"]').checked = true;
+      }
+
+      updateEmailPreview();
+      document.getElementById('actionModal').classList.remove('hidden');
+    }
+
+    function closeActionModal() {
+      document.getElementById('actionModal').classList.add('hidden');
+    }
+
+    function updateEmailPreview() {
+      if (!selectedBooking) return;
+      const template = document.querySelector('input[name="emailTemplate"]:checked').value;
+      const custom = document.getElementById('customEmailNote').value.trim();
+      const previewBox = document.getElementById('emailPreviewBox');
+
+      let body = "";
+      if (template === 'in_person') {
+        body = `Kính gửi Quý Doanh nghiệp ${selectedBooking.company_name},\nNgười liên hệ: ${selectedBooking.contact_person}\n\nChúng tôi trân trọng thông báo: Yêu cầu đặt lịch hẹn với Giám đốc của Quý đơn vị đã được PHÊ DUYỆT.\n\nTHÔNG TIN LỊCH HẸN:\n- Thời gian: ${selectedBooking.time_slot} ngày ${selectedBooking.meeting_date}\n- Hình thức: Gặp trực tiếp tại Văn phòng\n- Địa chỉ: Tầng 12, Tòa nhà Trụ sở Doanh nghiệp, Hà Nội\n- Lưu ý: Quý khách vui lòng gửi xe tại hầm B2 và xuất trình CCCD tại lễ tân để nhận thẻ lên tầng.\n\n${custom ? `Ghi chú thêm: ${custom}\n\n` : ''}Trân trọng cảm ơn,\nBộ phận Trợ lý Giám đốc.`;
+      } else if (template === 'online') {
+        body = `Kính gửi Quý Doanh nghiệp ${selectedBooking.company_name},\nNgười liên hệ: ${selectedBooking.contact_person}\n\nChúng tôi trân trọng thông báo: Yêu cầu đặt lịch hẹn với Giám đốc đã được PHÊ DUYỆT (HỌP TRỰC TUYẾN).\n\nTHÔNG TIN LỊCH HẸN:\n- Thời gian: ${selectedBooking.time_slot} ngày ${selectedBooking.meeting_date}\n- Hình thức: Họp Online qua Google Meet\n- Đường dẫn tham gia: https://meet.google.com/abc-xyz-meeting\n- Nội dung trao đổi: ${selectedBooking.purpose}\n\n${custom ? `Ghi chú thêm: ${custom}\n\n` : ''}Trân trọng cảm ơn,\nBộ phận Trợ lý Giám đốc.`;
+      } else {
+        body = `Kính gửi Quý Doanh nghiệp ${selectedBooking.company_name},\nNgười liên hệ: ${selectedBooking.contact_person}\n\nRất tiếc vào khung giờ ${selectedBooking.time_slot} ngày ${selectedBooking.meeting_date}, Giám đốc có lịch công tác đột xuất nên không thể tiếp đoàn.\n\n${custom ? custom : 'Kính mong Quý đơn vị thông cảm và chọn lại khung giờ khác trên hệ thống.'}\n\nTrân trọng cảm ơn,\nBộ phận Trợ lý Giám đốc.`;
+      }
+
+      previewBox.textContent = body;
+    }
+
+    async function confirmAndSend() {
+      const id = document.getElementById('currentBookingId').value;
+      const template = document.querySelector('input[name="emailTemplate"]:checked').value;
+      const custom = document.getElementById('customEmailNote').value.trim();
+      const action = template === 'reschedule' ? 'reject' : 'confirm';
+      const btn = document.getElementById('btnConfirmSend');
+
+      btn.disabled = true;
+      btn.textContent = "Đang gửi email...";
+
+      try {
+        const res = await fetch(`/api/admin/bookings/${id}/action`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: action,
+            template_type: template,
+            custom_note: custom
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert(data.message);
+          closeActionModal();
+          loadBookings();
+        } else {
+          alert("Lỗi khi xử lý: " + data.detail);
+        }
+      } catch (err) {
+        alert("Lỗi kết nối máy chủ!");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "✉️ Xác Nhận & Gửi Thư Tới Khách";
+      }
+    }
+
+    // Modal Khóa giờ
+    function openBlockSlotModal() {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById('blockDate').value = tomorrow.toISOString().split('T')[0];
+      document.getElementById('blockModal').classList.remove('hidden');
+    }
+    function closeBlockModal() {
+      document.getElementById('blockModal').classList.add('hidden');
+    }
+    async function submitBlockSlot() {
+      const date = document.getElementById('blockDate').value;
+      const slot = document.getElementById('blockSlot').value;
+      const reason = document.getElementById('blockReason').value;
+
+      try {
+        const res = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            meeting_date: date,
+            time_slot: slot,
+            tax_code: 'NOIBO-001',
+            company_name: '[LỊCH NỘI BỘ] ' + reason,
+            contact_person: 'Trợ lý Giám đốc',
+            phone: 'Nội bộ',
+            email: 'admin@noibo.com',
+            purpose: reason,
+            attendees_count: 1,
+            questions: ''
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          // Auto approve this slot immediately
+          await fetch(`/api/admin/bookings/${data.booking_id}/action`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'confirm', template_type: 'in_person', custom_note: '' })
+          });
+          alert(`Đã khóa thành công khung giờ ${slot} ngày ${date}!`);
+          closeBlockModal();
+          loadBookings();
+        } else {
+          alert(data.detail || "Không thể khóa khung giờ này!");
+        }
+      } catch (err) {
+        alert("Lỗi máy chủ!");
+      }
+    }
+
+    loadBookings();
+  </script>
+</body>
+</html>
