@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Mẫu Email - Trợ Lý Giám Đốc</title>
+  <link rel="stylesheet" href="/static/css/common.css">
+  <link rel="stylesheet" href="/static/css/admin.css">
+  <link rel="stylesheet" href="/static/css/modal.css">
+</head>
+<body>
+
+  <!-- Admin Header -->
+  <header class="admin-header">
+    <div class="container admin-nav">
+      <a href="/admin" class="admin-logo">
+        <span>🛡️</span>
+        <span>Bàn Làm Việc Trợ Lý</span>
+      </a>
+      <div class="admin-actions">
+        <a href="/admin" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; background: transparent; color: #ffffff; border-color: #475569;">
+          ← Quay lại Bàn Làm Việc
+        </a>
+        <a href="/api/admin/logout" class="btn btn-danger" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
+          Đăng Xuất
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 2rem; padding-bottom: 3rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <div>
+        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a;">📝 Quản Lý Các Mẫu Email Soạn Sẵn</h2>
+        <p style="font-size: 0.85rem; color: #64748b; margin-top: 0.2rem;">Tùy chỉnh nội dung thư phê duyệt, họp trực tuyến hoặc từ chối để sử dụng nhanh khi duyệt đơn.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openTemplateEditor()">
+        + Thêm Mẫu Mới
+      </button>
+    </div>
+
+    <!-- Templates List Container -->
+    <div id="templatesListContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem;">
+      <!-- Populated dynamically -->
+    </div>
+  </main>
+
+  <!-- MODAL EDIT/ADD TEMPLATE -->
+  <div id="templateEditModal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width: 600px;">
+      <div class="modal-header">
+        <div>
+          <h3 id="templateModalTitle">Chỉnh Sửa Mẫu Email</h3>
+          <p>Tùy biến nội dung thư</p>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeTemplateModal()">&times;</button>
+      </div>
+
+      <form id="templateEditForm" class="modal-body" onsubmit="saveTemplateForm(event)">
+        <div class="form-group">
+          <label class="form-label">Mã Định Danh (ID mẫu - viết liền không dấu) *</label>
+          <input type="text" id="tplIdInput" class="form-control" required placeholder="VD: an_trua_cong_tac, gap_co_so_2">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tên Tiêu Đề Nút Hiển Thị *</label>
+          <input type="text" id="tplTitleInput" class="form-control" required placeholder="VD: Gặp Ăn Trưa, Họp Chi Nhánh 2">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tiêu Đề Thư Gửi Khách (Subject) *</label>
+          <input type="text" id="tplSubjectInput" class="form-control" required placeholder="[XÁC NHẬN] Lịch hẹn làm việc...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nội Dung Thư (Body Text) *</label>
+          <textarea id="tplBodyInput" rows="8" class="form-control" style="font-family: inherit; font-size: 0.85rem; line-height: 1.6;" required></textarea>
+          
+          <div class="tag-helper-bar">
+            <span>Biến hỗ trợ:</span>
+            <span class="tag-pill">{ten_cty}</span>
+            <span class="tag-pill">{ngay_hop}</span>
+            <span class="tag-pill">{gio_hop}</span>
+            <span class="tag-pill">{nguoi_lien_he}</span>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="padding: 0; margin-top: 0.5rem; background: transparent; border: none;">
+          <button type="button" class="btn btn-outline" onclick="closeTemplateModal()">Hủy Bỏ</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveTpl">Lưu Mẫu Email</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let templatesData = [];
+
+    document.addEventListener('DOMContentLoaded', loadTemplatesPage);
+
+    async function loadTemplatesPage() {
+      const container = document.getElementById('templatesListContainer');
+      container.innerHTML = '<div style="color: #64748b; padding: 2rem;">Đang tải danh sách mẫu thư...</div>';
+
+      try {
+        const res = await fetch('/api/admin/templates');
+        if (res.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
+        const data = await res.json();
+        templatesData = data.templates;
+        renderTemplatesList();
+      } catch (err) {
+        container.innerHTML = '<div style="color: #ef4444;">Lỗi tải dữ liệu mẫu email!</div>';
+      }
+    }
+
+    function renderTemplatesList() {
+      const container = document.getElementById('templatesListContainer');
+      container.innerHTML = '';
+
+      templatesData.forEach((t) => {
+        const card = document.createElement('div');
+        card.style.cssText = "background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between;";
+
+        card.innerHTML = `
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: 800; font-size: 1rem; color: #0f172a;">${escapeHtml(t.title)}</span>
+              <span class="predict-tax-tag">${escapeHtml(t.id)}</span>
+            </div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #2563eb; margin-bottom: 0.5rem;">
+              Tiêu đề: ${escapeHtml(t.subject)}
+            </div>
+            <pre style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.75rem; color: #475569; white-space: pre-wrap; font-family: inherit; max-height: 180px; overflow-y: auto;">${escapeHtml(t.body)}</pre>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #f1f5f9;">
+            <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.65rem;" onclick="editTemplate('${t.id}')">
+              ✏️ Sửa
+            </button>
+            <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.65rem; color: #dc2626; border-color: #fecaca;" onclick="deleteTemplate('${t.id}')">
+              🗑️ Xóa
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openTemplateEditor(tpl = null) {
+      if (tpl) {
+        document.getElementById('templateModalTitle').textContent = 'Chỉnh Sửa Mẫu Email';
+        document.getElementById('tplIdInput').value = tpl.id;
+        document.getElementById('tplIdInput').readOnly = true;
+        document.getElementById('tplTitleInput').value = tpl.title;
+        document.getElementById('tplSubjectInput').value = tpl.subject;
+        document.getElementById('tplBodyInput').value = tpl.body;
+      } else {
+        document.getElementById('templateModalTitle').textContent = 'Thêm Mẫu Email Mới';
+        document.getElementById('tplIdInput').value = '';
+        document.getElementById('tplIdInput').readOnly = false;
+        document.getElementById('tplTitleInput').value = '';
+        document.getElementById('tplSubjectInput').value = '';
+        document.getElementById('tplBodyInput').value = '';
+      }
+      document.getElementById('templateEditModal').classList.remove('hidden');
+    }
+
+    function closeTemplateModal() {
+      document.getElementById('templateEditModal').classList.add('hidden');
+    }
+
+    function editTemplate(id) {
+      const t = templatesData.find(x => x.id === id);
+      if (t) openTemplateEditor(t);
+    }
+
+    async function saveTemplateForm(e) {
+      e.preventDefault();
+      const payload = {
+        id: document.getElementById('tplIdInput').value.trim(),
+        title: document.getElementById('tplTitleInput').value.trim(),
+        subject: document.getElementById('tplSubjectInput').value.trim(),
+        body: document.getElementById('tplBodyInput').value.trim()
+      };
+
+      try {
+        const res = await fetch('/api/admin/templates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          closeTemplateModal();
+          loadTemplatesPage();
+        } else {
+          alert('Không thể lưu mẫu!');
+        }
+      } catch (err) {
+        alert('Lỗi kết nối máy chủ!');
+      }
+    }
+
+    async function deleteTemplate(id) {
+      if (!confirm(`Bạn có chắc muốn xóa mẫu email "${id}" không?`)) return;
+      try {
+        const res = await fetch(`/api/admin/templates/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          loadTemplatesPage();
+        } else {
+          alert('Không thể xóa mẫu!');
+        }
+      } catch (err) {
+        alert('Lỗi kết nối máy chủ!');
+      }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

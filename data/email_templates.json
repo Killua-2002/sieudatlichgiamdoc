@@ -1,0 +1,20 @@
+[
+  {
+    "id": "in_person",
+    "title": "Gặp tại Văn phòng",
+    "subject": "[XÁC NHẬN] Lịch hẹn làm việc với Giám đốc ({ngay_hop})",
+    "body": "Kính gửi Quý Doanh nghiệp {ten_cty},\nNgười liên hệ: {nguoi_lien_he}\n\nChúng tôi trân trọng thông báo: Yêu cầu đặt lịch hẹn với Giám đốc của Quý đơn vị đã được PHÊ DUYỆT.\n\nTHÔNG TIN LỊCH HẸN:\n- Thời gian: {gio_hop} ngày {ngay_hop}\n- Hình thức: Gặp trực tiếp tại Văn phòng\n- Địa chỉ: Tầng 12, Tòa nhà Trụ sở, TP. Hà Nội\n- Lưu ý: Quý khách vui lòng gửi xe tại hầm B2 và xuất trình CCCD tại bàn lễ tân để nhận thẻ lên tầng.\n\n{ghi_chu_them}\n\nTrân trọng cảm ơn,\nBộ phận Trợ lý Giám đốc."
+  },
+  {
+    "id": "online",
+    "title": "Họp Trực Tuyến (Google Meet)",
+    "subject": "[XÁC NHẬN] Lịch họp trực tuyến với Giám đốc ({ngay_hop})",
+    "body": "Kính gửi Quý Doanh nghiệp {ten_cty},\nNgười liên hệ: {nguoi_lien_he}\n\nChúng tôi trân trọng thông báo: Yêu cầu đặt lịch hẹn với Giám đốc của Quý đơn vị đã được PHÊ DUYỆT (HỌP TRỰC TUYẾN).\n\nTHÔNG TIN LỊCH HẸN:\n- Thời gian: {gio_hop} ngày {ngay_hop}\n- Hình thức: Họp Trực Tuyến qua Google Meet\n- Đường dẫn tham gia: https://meet.google.com/abc-xyz-meeting\n- Nội dung trao đổi: Trao đổi công việc theo phiếu đăng ký\n\n{ghi_chu_them}\n\nTrân trọng cảm ơn,\nBộ phận Trợ lý Giám đốc."
+  },
+  {
+    "id": "reschedule",
+    "title": "Đổi giờ / Sếp bận công tác",
+    "subject": "[THÔNG BÁO] Về việc điều chỉnh lịch hẹn làm việc với Giám đốc ({ngay_hop})",
+    "body": "Kính gửi Quý Doanh nghiệp {ten_cty},\nNgười liên hệ: {nguoi_lien_he}\n\nRất tiếc vào khung giờ {gio_hop} ngày {ngay_hop}, Giám đốc có lịch công tác đột xuất của Ban điều hành nên chưa thể tiếp đoàn vào thời gian này.\n\n{ghi_chu_them}\n\nKính mong Quý đơn vị thông cảm. Quý đơn vị vui lòng truy cập lại cổng đặt lịch để chọn khung giờ phù hợp khác.\n\nTrân trọng cảm ơn,\nBộ phận Trợ lý Giám đốc."
+  }
+]

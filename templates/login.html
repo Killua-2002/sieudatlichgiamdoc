@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng Nhập Quản Trị - Trợ Lý Giám Đốc</title>
+  <link rel="stylesheet" href="/static/css/common.css">
+  <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+  <div class="login-page-container">
+    <div class="login-card">
+      <div style="text-align: center; margin-bottom: 1.75rem;">
+        <div style="width: 52px; height: 52px; background: #2563eb; color: white; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 0.75rem;">
+          🛡️
+        </div>
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a;">Bàn Làm Việc Trợ Lý</h2>
+        <p style="font-size: 0.8rem; color: #64748b; margin-top: 0.2rem;">Hệ thống phê duyệt & quản lý lịch hẹn Giám đốc</p>
+      </div>
+
+      <div id="loginAlertBox" style="display: none; padding: 0.75rem; border-radius: 8px; font-size: 0.8rem; margin-bottom: 1rem; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;"></div>
+
+      <form id="loginForm" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div>
+          <label style="display: block; font-size: 0.775rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem; text-transform: uppercase;">Tài Khoản Quản Trị</label>
+          <input type="text" id="usernameInput" value="Host123" required 
+            style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.875rem; outline: none;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.775rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem; text-transform: uppercase;">Mật Khẩu</label>
+          <input type="password" id="passwordInput" placeholder="Nhập mật khẩu (000000)" required 
+            style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.875rem; outline: none;">
+        </div>
+
+        <button type="submit" id="btnLoginSubmit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 0.9rem; margin-top: 0.5rem;">
+          Đăng Nhập Hệ Thống
+        </button>
+      </form>
+
+      <div style="margin-top: 1.5rem; text-align: center; border-top: 1px solid #f1f5f9; pt-3;">
+        <a href="/" style="font-size: 0.775rem; color: #64748b; text-decoration: none;">← Quay lại Trang Đặt Lịch</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const u = document.getElementById('usernameInput').value.trim();
+      const p = document.getElementById('passwordInput').value.trim();
+      const btn = document.getElementById('btnLoginSubmit');
+      const alertBox = document.getElementById('loginAlertBox');
+
+      btn.disabled = true;
+      btn.textContent = 'Đang kiểm tra...';
+      alertBox.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          window.location.href = '/admin';
+        } else {
+          alertBox.style.display = 'block';
+          alertBox.textContent = data.detail || 'Sai tài khoản hoặc mật khẩu!';
+        }
+      } catch (err) {
+        alertBox.style.display = 'block';
+        alertBox.textContent = 'Lỗi kết nối máy chủ!';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Đăng Nhập Hệ Thống';
+      }
+    });
+  </script>
+</body>
+</html>

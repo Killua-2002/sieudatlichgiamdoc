@@ -3,384 +3,188 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lịch Đặt Hẹn Giám Đốc</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-  </style>
+  <title>Cổng Đặt Lịch Hẹn Giám Đốc</title>
+  <link rel="stylesheet" href="/static/css/common.css">
+  <link rel="stylesheet" href="/static/css/calendar.css">
+  <link rel="stylesheet" href="/static/css/modal.css">
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen">
+<body>
 
-  <!-- Header -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-200">
+  <!-- Top Navigation -->
+  <header style="background: #ffffff; border-bottom: 1px solid var(--slate-200); position: sticky; top: 0; z-index: 30;">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding-top: 0.75rem; padding-bottom: 0.75rem;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div style="width: 38px; height: 38px; background: #2563eb; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;">
           💼
         </div>
         <div>
-          <h1 class="text-lg font-bold text-slate-900 leading-tight">Cổng Đặt Lịch Hẹn Giám Đốc</h1>
-          <p class="text-xs text-slate-500">Đăng ký lịch làm việc và trao đổi công tác</p>
+          <h1 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; line-height: 1.2;">Lịch Tiếp Doanh Nghiệp - Giám Đốc</h1>
+          <p style="font-size: 0.75rem; color: #64748b;">Đăng ký khung giờ làm việc và trao đổi công tác</p>
         </div>
       </div>
-      <a href="/admin" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5">
-        🔒 Dành cho Trợ lý (Admin)
+      <a href="/login" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.4rem 0.85rem;">
+        🔒 Dành cho Trợ lý (Host)
       </a>
     </div>
   </header>
 
-  <main class="max-w-5xl mx-auto px-4 py-8">
-    <!-- Notice Card -->
-    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-5 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-      <div class="space-y-1">
-        <h2 class="text-base font-semibold text-blue-900 flex items-center gap-2">
-          <span>📅</span> Hướng dẫn đặt lịch dành cho Doanh nghiệp
+  <main class="container" style="padding-top: 1.75rem; padding-bottom: 3rem;">
+    <!-- Banner -->
+    <div class="calendar-header-banner">
+      <div>
+        <h2 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 0.35rem;">
+          📅 Hệ Thống Đặt Lịch Hẹn Trực Tuyến
         </h2>
-        <p class="text-sm text-blue-700">
-          Vui lòng chọn <strong>Ngày</strong> và bấm vào <strong>Khung giờ còn trống (màu xanh)</strong> để điền phiếu đăng ký. Lịch hẹn sẽ được gửi email xác nhận sau khi Trợ lý đối chiếu cùng Giám đốc.
+        <p style="font-size: 0.875rem; opacity: 0.95;">
+          Hệ thống bố trí <strong>5 ca làm việc chuẩn mỗi ngày</strong>. Doanh nghiệp vui lòng chọn khung giờ trống (màu xanh lá) để gửi phiếu đăng ký.
         </p>
       </div>
-      <div class="flex items-center gap-3 text-xs font-medium shrink-0">
-        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Còn trống</span>
-        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span> Chờ duyệt</span>
-        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> Đã có lịch</span>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <span class="badge badge-success">● Còn trống</span>
+        <span class="badge badge-warning">⏳ Chờ duyệt</span>
+        <span class="badge badge-danger">✕ Đã kín</span>
       </div>
     </div>
 
-    <!-- Calendar Date Picker Bar -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Chọn ngày muốn hẹn gặp:</label>
-          <input type="date" id="datePicker" class="text-base font-semibold text-slate-800 border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm cursor-pointer">
-        </div>
-        <div class="text-sm text-slate-500">
-          Ngày đang xem: <span id="selectedDateDisplay" class="font-bold text-blue-600">--</span>
-        </div>
+    <!-- Toolbar: Week Navigation & View Switch -->
+    <div class="calendar-toolbar">
+      <div class="week-nav-group">
+        <button class="btn btn-outline" id="btnPrevWeek">◀ Tuần trước</button>
+        <button class="btn btn-outline" id="btnCurrentWeek">Hôm nay</button>
+        <button class="btn btn-outline" id="btnNextWeek">Tuần sau ▶</button>
+        <span class="current-week-display" id="weekRangeDisplay">Đang tải tuần...</span>
       </div>
 
-      <!-- Time Slot Grid -->
-      <div class="mt-6">
-        <h3 class="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
-          <span>⏰</span> Các khung giờ trong ngày:
-        </h3>
-        <div id="slotsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <!-- Slots rendered here dynamically -->
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span style="font-size: 0.775rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Chế độ xem:</span>
+        <div class="view-switch-container">
+          <button class="view-switch-btn active" id="btnViewGrid">
+            <span>⊞</span> Lưới Tuần (5x7)
+          </button>
+          <button class="view-switch-btn" id="btnViewTable">
+            <span>𝌆</span> Bảng Lịch (T2 - CN)
+          </button>
         </div>
+      </div>
+    </div>
+
+    <!-- Mouse Wheel Scroll Notification Hint -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.75rem; color: #64748b;">
+      <span>💡 <em>Mẹo: Di chuột vào bảng lịch và lăn chuột dọc để cuộn ngang mượt mà.</em></span>
+    </div>
+
+    <!-- Calendar Scrollable Area with Mouse Wheel support -->
+    <div class="calendar-scroll-wrapper" id="calendarScrollWrapper">
+      <div id="calendarRenderContainer">
+        <!-- Rendered dynamically by calendar.js -->
       </div>
     </div>
   </main>
 
   <!-- POP-UP MODAL ĐĂNG KÝ HẸN -->
-  <div id="bookingModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-      
-      <!-- Modal Header -->
-      <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+  <div id="bookingModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
         <div>
-          <h3 class="font-bold text-base">Phiếu Đăng Ký Lịch Hẹn</h3>
-          <p id="modalSlotSubtitle" class="text-xs text-slate-300">Khung giờ: 09:00 - 10:00 (25/10/2026)</p>
+          <h3>Phiếu Đăng Ký Lịch Hẹn Giám Đốc</h3>
+          <p id="modalSlotSubtitle">Thời gian: Ca 1 (07:30 - 09:00)</p>
         </div>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-2xl font-semibold leading-none">&times;</button>
+        <button type="button" class="modal-close-btn" id="bookingModalClose">&times;</button>
       </div>
 
-      <!-- Modal Body (Form) -->
-      <form id="bookingForm" onsubmit="submitBooking(event)" class="p-6 space-y-4 overflow-y-auto">
-        <input type="hidden" id="formDate">
-        <input type="hidden" id="formSlot">
+      <form id="bookingForm" class="modal-body">
+        <input type="hidden" id="modalMeetingDate">
+        <input type="hidden" id="modalTimeSlot">
 
-        <!-- 1. Tra cứu Mã Số Thuế -->
-        <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-100">
-          <label class="block text-xs font-bold text-blue-900 mb-1">MÃ SỐ THUẾ DOANH NGHIỆP *</label>
-          <div class="flex gap-2">
-            <input type="text" id="taxCode" required placeholder="Nhập MST (VD: 0101234567)" 
-              class="w-full text-sm font-medium border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase">
-            <button type="button" onclick="checkTaxCode()" id="btnCheckTax"
-              class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg whitespace-nowrap transition">
-              Tra Cứu
-            </button>
+        <!-- Ô TÌM KIẾM DỰ ĐOÁN THÔNG MINH (GOOGLE-STYLE TYPEAHEAD) -->
+        <div class="form-group">
+          <label class="form-label" style="color: #2563eb;">
+            🔍 Tìm Doanh Nghiệp (Gõ Tên Hoặc Mã Số Thuế 10-13 Số) *
+          </label>
+          <div class="predict-search-wrapper">
+            <input type="text" id="companySearchInput" class="form-control" autocomplete="off"
+              placeholder="VD: Viettel, FPT, 0100109106, Vinamilk..." required>
+            <!-- Dropdown autocomplete menu -->
+            <div id="predictDropdown" class="predict-dropdown"></div>
           </div>
-          <div id="taxResult" class="mt-2 text-xs hidden">
-            <!-- Tên công ty tự fill vào đây -->
+          <span style="font-size: 0.725rem; color: #64748b;">Gõ từ khóa để nhận gợi ý tức thì, hoặc tự gõ nếu doanh nghiệp mới.</span>
+        </div>
+
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label class="form-label">Mã Số Thuế / Chi Nhánh *</label>
+            <input type="text" id="taxCode" class="form-control" placeholder="Tự điền khi chọn gợi ý" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tên Doanh Nghiệp *</label>
+            <input type="text" id="companyName" class="form-control" placeholder="Tên chính thức trên ĐKKD" required>
           </div>
         </div>
 
-        <!-- 2. Tên Công ty (Readonly hoặc tự fill) -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">TÊN CÔNG TY / TỔ CHỨC *</label>
-          <input type="text" id="companyName" required placeholder="Tự động điền sau khi tra cứu MST" 
-            class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-        </div>
-
-        <!-- 3. Người liên hệ & SĐT & Email -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">HỌ TÊN NGƯỜI ĐẠI DIỆN *</label>
-            <input type="text" id="contactPerson" required placeholder="Nguyễn Văn A" 
-              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label class="form-label">Họ Tên Người Đại Diện *</label>
+            <input type="text" id="contactPerson" class="form-control" placeholder="Nguyễn Văn A" required>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">SỐ ĐIỆN THOẠI LIÊN HỆ *</label>
-            <input type="tel" id="phoneNumber" required placeholder="0912 xxx xxx" 
-              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <div class="form-group">
+            <label class="form-label">Số Điện Thoại Liên Hệ *</label>
+            <input type="tel" id="phone" class="form-control" placeholder="0912 xxx xxx" required>
           </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">EMAIL NHẬN XÁC NHẬN LỊCH *</label>
-          <input type="email" id="email" required placeholder="email@doanhnghiep.com (nhận mail duyệt lịch)" 
-            class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          <p class="text-[11px] text-slate-400 mt-0.5">Trợ lý sẽ gửi thông báo phê duyệt kèm hướng dẫn cuộc họp vào email này.</p>
+        <div class="form-group">
+          <label class="form-label">Email Nhận Thông Báo Duyệt Lịch *</label>
+          <input type="email" id="email" class="form-control" placeholder="email@doanhnghiep.com" required>
+          <span style="font-size: 0.725rem; color: #64748b;">Trợ lý Giám đốc sẽ gửi thư xác nhận chính thức vào email này.</span>
         </div>
 
-        <!-- 4. Câu hỏi khảo sát cuộc hẹn -->
-        <div class="pt-2 border-t border-slate-100 space-y-3">
-          <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Nội dung trao đổi với Giám đốc</h4>
-          
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Mục đích chính của buổi làm việc *</label>
-            <textarea id="purpose" required rows="2" placeholder="VD: Báo cáo tiến độ dự án, Đề xuất hợp tác kinh doanh..." 
-              class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
-          </div>
+        <div class="form-group">
+          <label class="form-label">Mục Đích Buổi Làm Việc *</label>
+          <textarea id="purpose" rows="2" class="form-control" placeholder="Tóm tắt nội dung chính cần trao đổi cùng Giám đốc..." required></textarea>
+        </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1">Số lượng người tham dự</label>
-              <input type="number" id="attendeesCount" value="1" min="1" max="10" 
-                class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-            </div>
-            <div class="sm:col-span-2">
-              <label class="block text-xs font-medium text-slate-600 mb-1">Tài liệu / Câu hỏi gửi trước (nếu có)</label>
-              <input type="text" id="questions" placeholder="Link drive hoặc tóm tắt thắc mắc" 
-                class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-            </div>
+        <div class="form-row form-row-3">
+          <div class="form-group">
+            <label class="form-label">Số Người Dự Kiến</label>
+            <input type="number" id="attendeesCount" class="form-control" value="1" min="1" max="15">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Câu Hỏi / Tài Liệu Gửi Trước</label>
+            <input type="text" id="questions" class="form-control" placeholder="Link drive hoặc câu hỏi sơ bộ (nếu có)">
           </div>
         </div>
 
-        <!-- Buttons -->
-        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-          <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
-            Hủy bỏ
-          </button>
-          <button type="submit" id="btnSubmitBooking" class="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-md shadow-blue-200 transition">
-            Gửi Phiếu Đăng Ký
-          </button>
+        <div class="modal-footer" style="padding: 0; margin-top: 0.5rem; background: transparent; border: none;">
+          <button type="button" class="btn btn-outline" id="bookingCancelBtn">Hủy Bỏ</button>
+          <button type="submit" class="btn btn-primary" id="bookingSubmitBtn">Gửi Phiếu Đăng Ký</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- POP-UP THÔNG BÁO THÀNH CÔNG -->
-  <div id="successModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center space-y-4 animate-in fade-in zoom-in-95">
-      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto">
+  <!-- POP-UP THÀNH CÔNG -->
+  <div id="successModal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width: 440px; text-align: center; padding: 2rem;">
+      <div style="width: 58px; height: 58px; background: #ecfdf5; color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1rem;">
         ✓
       </div>
-      <h3 class="text-lg font-bold text-slate-900">Gửi Đăng Ký Thành Công!</h3>
-      <p class="text-sm text-slate-600">
-        Yêu cầu đặt lịch hẹn của Quý Doanh nghiệp đã được chuyển tới Trợ lý Giám đốc.
+      <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">Đăng Ký Thành Công!</h3>
+      <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.25rem;">
+        Yêu cầu đặt lịch hẹn của Quý Doanh nghiệp đã được chuyển tới Bàn làm việc Trợ lý Giám đốc.
       </p>
-      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-left space-y-1 text-slate-700">
-        <p><strong>Thời gian:</strong> <span id="succSlot">--</span></p>
-        <p><strong>Doanh nghiệp:</strong> <span id="succCompany">--</span></p>
-        <p><strong>Email nhận duyệt:</strong> <span id="succEmail">--</span></p>
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem; text-align: left; font-size: 0.8rem; margin-bottom: 1.25rem;">
+        <p style="margin-bottom: 0.25rem;"><strong>Thời gian:</strong> <span id="succModalTime" style="color: #2563eb; font-weight: 700;">--</span></p>
+        <p style="margin-bottom: 0.25rem;"><strong>Doanh nghiệp:</strong> <span id="succModalCompany">--</span></p>
+        <p><strong>Hộp thư nhận duyệt:</strong> <span id="succModalEmail">--</span></p>
       </div>
-      <p class="text-xs text-amber-600 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
-        📌 Khung giờ này hiện đã được chuyển sang trạng thái <strong>Chờ duyệt</strong> trên hệ thống để tránh trùng lịch.
-      </p>
-      <button onclick="closeSuccessModal()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition text-sm">
+      <button class="btn btn-primary" id="successModalCloseBtn" style="width: 100%;">
         Đã hiểu, quay về Lịch
       </button>
     </div>
   </div>
 
-  <script>
-    // Set default date to tomorrow or next working day
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const datePicker = document.getElementById('datePicker');
-    datePicker.value = tomorrow.toISOString().split('T')[0];
-
-    datePicker.addEventListener('change', () => loadSlots(datePicker.value));
-
-    async function loadSlots(dateStr) {
-      document.getElementById('selectedDateDisplay').textContent = new Date(dateStr).toLocaleDateString('vi-VN', {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-      });
-      const container = document.getElementById('slotsContainer');
-      container.innerHTML = '<div class="col-span-full py-8 text-center text-slate-400">Đang tải lịch trống...</div>';
-
-      try {
-        const res = await fetch(`/api/slots?date=${dateStr}`);
-        const data = await res.json();
-        renderSlots(data.slots, dateStr);
-      } catch (err) {
-        container.innerHTML = '<div class="col-span-full py-8 text-center text-rose-500">Lỗi tải dữ liệu lịch!</div>';
-      }
-    }
-
-    function renderSlots(slots, dateStr) {
-      const container = document.getElementById('slotsContainer');
-      container.innerHTML = '';
-
-      slots.forEach(slot => {
-        const card = document.createElement('div');
-        card.className = "rounded-xl p-4 border transition flex flex-col justify-between ";
-
-        if (slot.status === 'available') {
-          card.className += "bg-white border-emerald-200 hover:border-emerald-500 hover:shadow-md cursor-pointer group";
-          card.innerHTML = `
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-sm font-bold text-slate-800 group-hover:text-blue-600">${slot.time_slot}</span>
-              <span class="bg-emerald-100 text-emerald-800 text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Còn trống
-              </span>
-            </div>
-            <p class="text-xs text-slate-500 mb-3">Sẵn sàng nhận lịch hẹn</p>
-            <button class="w-full text-xs font-semibold py-1.5 bg-emerald-50 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white rounded-lg transition text-center">
-              👉 Bấm để đặt lịch
-            </button>
-          `;
-          card.onclick = () => openBookingModal(dateStr, slot.time_slot);
-        } else if (slot.status === 'pending') {
-          card.className += "bg-amber-50/50 border-amber-200 opacity-90 cursor-not-allowed";
-          card.innerHTML = `
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-sm font-bold text-slate-700">${slot.time_slot}</span>
-              <span class="bg-amber-100 text-amber-800 text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Chờ duyệt
-              </span>
-            </div>
-            <p class="text-xs text-amber-700 font-medium mb-1">Đang chờ Host xác nhận</p>
-            <p class="text-[11px] text-slate-400 italic truncate">${slot.company_name ? slot.company_name : 'Đã có đơn đăng ký'}</p>
-          `;
-        } else {
-          // Confirmed / Booked
-          card.className += "bg-slate-100 border-slate-200 opacity-80 cursor-not-allowed";
-          card.innerHTML = `
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-sm font-bold text-slate-400 line-through">${slot.time_slot}</span>
-              <span class="bg-rose-100 text-rose-800 text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Đã có lịch
-              </span>
-            </div>
-            <p class="text-xs text-slate-500 font-medium mb-1">Đã có lịch làm việc</p>
-            <p class="text-[11px] text-slate-400 truncate">Giám đốc bận tiếp đoàn</p>
-          `;
-        }
-        container.appendChild(card);
-      });
-    }
-
-    function openBookingModal(dateStr, slot) {
-      document.getElementById('formDate').value = dateStr;
-      document.getElementById('formSlot').value = slot;
-      document.getElementById('modalSlotSubtitle').textContent = `Khung giờ: ${slot} | Ngày: ${dateStr}`;
-      document.getElementById('bookingModal').classList.remove('hidden');
-    }
-
-    function closeModal() {
-      document.getElementById('bookingModal').classList.add('hidden');
-      document.getElementById('bookingForm').reset();
-      document.getElementById('taxResult').classList.add('hidden');
-    }
-
-    async function checkTaxCode() {
-      const code = document.getElementById('taxCode').value.trim();
-      const resultBox = document.getElementById('taxResult');
-      const companyInput = document.getElementById('companyName');
-      const btn = document.getElementById('btnCheckTax');
-
-      if (!code) {
-        alert("Vui lòng nhập Mã số thuế!");
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = "Đang tra...";
-      resultBox.classList.remove('hidden');
-      resultBox.innerHTML = '<span class="text-slate-500">Đang kiểm tra với Cổng thông tin ĐKKD...</span>';
-
-      try {
-        const res = await fetch(`/api/lookup-tax/${code}`);
-        const data = await res.json();
-        if (data.success) {
-          companyInput.value = data.name;
-          resultBox.innerHTML = `
-            <div class="p-2 bg-emerald-50 border border-emerald-200 rounded text-emerald-800">
-              <p class="font-bold">✓ ${data.name}</p>
-              <p class="text-[11px] text-emerald-600">${data.address || ''}</p>
-            </div>
-          `;
-        } else {
-          resultBox.innerHTML = `
-            <div class="p-2 bg-rose-50 border border-rose-200 rounded text-rose-700">
-              ⚠️ Không tìm thấy tên tự động. Bạn vui lòng tự gõ tên Doanh nghiệp bên dưới.
-            </div>
-          `;
-        }
-      } catch (err) {
-        resultBox.innerHTML = '<span class="text-rose-500">Lỗi kết nối tra cứu!</span>';
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Tra Cứu";
-      }
-    }
-
-    async function submitBooking(e) {
-      e.preventDefault();
-      const btn = document.getElementById('btnSubmitBooking');
-      btn.disabled = true;
-      btn.textContent = "Đang gửi đăng ký...";
-
-      const payload = {
-        meeting_date: document.getElementById('formDate').value,
-        time_slot: document.getElementById('formSlot').value,
-        tax_code: document.getElementById('taxCode').value.trim(),
-        company_name: document.getElementById('companyName').value.trim(),
-        contact_person: document.getElementById('contactPerson').value.trim(),
-        phone: document.getElementById('phoneNumber').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        purpose: document.getElementById('purpose').value.trim(),
-        attendees_count: parseInt(document.getElementById('attendeesCount').value) || 1,
-        questions: document.getElementById('questions').value.trim()
-      };
-
-      try {
-        const res = await fetch('/api/bookings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-
-        if (res.ok) {
-          closeModal();
-          // Show success modal
-          document.getElementById('succSlot').textContent = `${payload.time_slot} (${payload.meeting_date})`;
-          document.getElementById('succCompany').textContent = payload.company_name;
-          document.getElementById('succEmail').textContent = payload.email;
-          document.getElementById('successModal').classList.remove('hidden');
-          // Reload slots
-          loadSlots(payload.meeting_date);
-        } else {
-          alert(data.detail || "Có lỗi xảy ra khi đặt lịch!");
-        }
-      } catch (err) {
-        alert("Lỗi kết nối máy chủ!");
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Gửi Phiếu Đăng Ký";
-      }
-    }
-
-    function closeSuccessModal() {
-      document.getElementById('successModal').classList.add('hidden');
-    }
-
-    // Initial load
-    loadSlots(datePicker.value);
-  </script>
+  <!-- Scripts -->
+  <script src="/static/js/search_predict.js"></script>
+  <script src="/static/js/calendar.js"></script>
 </body>
 </html>
