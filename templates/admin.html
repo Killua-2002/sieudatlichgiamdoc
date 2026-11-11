@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Bàn Làm Việc Trợ Lý Giám Đốc</title>
   <link rel="stylesheet" href="/static/css/common.css">
+  <link rel="stylesheet" href="/static/css/calendar.css">
   <link rel="stylesheet" href="/static/css/admin.css">
   <link rel="stylesheet" href="/static/css/modal.css">
 </head>
@@ -32,8 +33,49 @@
   </header>
 
   <main class="container" style="padding-top: 1.75rem; padding-bottom: 3rem;">
-    <!-- Stats Cards -->
-    <div class="stats-grid">
+    
+    <!-- Admin View Switcher Tabs -->
+    <div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--slate-200); margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
+      <button id="adminTabBtn_calendar" class="btn btn-primary" onclick="switchAdminTab('calendar')" style="border-radius: 8px 8px 0 0;">
+        📅 Bảng Lịch Trực Quan Của Sếp (Khóa/Mở Ca)
+      </button>
+      <button id="adminTabBtn_bookings" class="btn btn-outline" onclick="switchAdminTab('bookings')" style="border-radius: 8px 8px 0 0;">
+        📋 Danh Sách Phiếu Đăng Ký Chờ Duyệt
+      </button>
+    </div>
+
+    <!-- TAB 1: ADMIN VISUAL CALENDAR (CUSTOMIZE & LOCK SCHEDULE) -->
+    <section id="adminSection_calendar">
+      <!-- Week Navigation Toolbar -->
+      <div class="calendar-toolbar" style="margin-bottom: 1rem;">
+        <div class="week-nav-group">
+          <button class="btn btn-outline" id="adminBtnPrevWeek">◀ Tuần trước</button>
+          <button class="btn btn-outline" id="adminBtnCurrentWeek">Hôm nay</button>
+          <button class="btn btn-outline" id="adminBtnNextWeek">Tuần sau ▶</button>
+          <span class="current-week-display" id="adminWeekRangeDisplay">Đang tải tuần...</span>
+        </div>
+        <div style="font-size: 0.8rem; color: #64748b; font-weight: 600;">
+          ⚡ Chế độ Quản trị: Bấm trực tiếp vào ô để <strong>Khóa ca bận</strong> hoặc <strong>Mở lại ca trống</strong>
+        </div>
+      </div>
+
+      <!-- Mouse Wheel hint -->
+      <div style="margin-bottom: 0.75rem; font-size: 0.75rem; color: #64748b;">
+        💡 <em>Mẹo: Lăn chuột dọc trong vùng bảng lịch để cuộn ngang mượt mà.</em>
+      </div>
+
+      <!-- Scrollable Admin Grid -->
+      <div class="calendar-scroll-wrapper" id="adminCalendarScrollWrapper" style="padding-bottom: 1.5rem;">
+        <div id="adminCalendarRenderContainer">
+          <!-- Dynamically populated by admin.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: BOOKINGS LIST -->
+    <section id="adminSection_bookings" style="display: none;">
+      <!-- Stats Cards -->
+      <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon" style="background: #eff6ff; color: #2563eb;">📋</div>
         <div>
@@ -87,6 +129,7 @@
     <div id="bookingsListContainer">
       <!-- Rendered dynamically by admin.js -->
     </div>
+    </section>
   </main>
 
   <!-- MODAL LIVE EMAIL COMPOSER -->

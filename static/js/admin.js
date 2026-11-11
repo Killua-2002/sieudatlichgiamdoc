@@ -4,14 +4,76 @@ let adminBookings = [];
 let currentFilter = 'all';
 let currentSelectedBooking = null;
 let cachedTemplates = [];
+let adminCalendarData = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+  loadAdminCalendar();
   loadAdminBookings();
   loadEmailTemplates();
   initAdminEvents();
+  setupAdminWheelScroll();
 });
 
+function switchAdminTab(tab) {
+  const calSec = document.getElementById('adminSection_calendar');
+  const bkSec = document.getElementById('adminSection_bookings');
+  const btnCal = document.getElementById('adminTabBtn_calendar');
+  const btnBk = document.getElementById('adminTabBtn_bookings');
+
+  if (tab === 'calendar') {
+    calSec.style.display = 'block';
+    bkSec.style.display = 'none';
+    btnCal.className = 'btn btn-primary';
+    btnBk.className = 'btn btn-outline';
+    loadAdminCalendar();
+  } else {
+    calSec.style.display = 'none';
+    bkSec.style.display = 'block';
+    btnCal.className = 'btn btn-outline';
+    btnBk.className = 'btn btn-primary';
+    loadAdminBookings();
+  }
+}
+
+function setupAdminWheelScroll() {
+  const wrapper = document.getElementById('adminCalendarScrollWrapper');
+  if (!wrapper) return;
+  wrapper.addEventListener('wheel', (e) => {
+    if (e.deltaY !== 0) {
+      e.preventDefault();
+      wrapper.scrollLeft += e.deltaY * 1.5;
+    }
+  }, { passive: false });
+}
+
 function initAdminEvents() {
+  // Calendar Navigation
+  const prevBtn = document.getElementById('adminBtnPrevWeek');
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      if (adminCalendarData && adminCalendarData.prev_week_date) {
+        loadAdminCalendar(adminCalendarData.prev_week_date);
+      }
+    });
+  }
+
+  const nextBtn = document.getElementById('adminBtnNextWeek');
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      if (adminCalendarData && adminCalendarData.next_week_date) {
+        loadAdminCalendar(adminCalendarData.next_week_date);
+      }
+    });
+  }
+
+  const currBtn = document.getElementById('adminBtnCurrentWeek');
+  if (currBtn) {
+    currBtn.addEventListener('click', () => {
+      const todayStr = new Date().toISOString().split('T')[0];
+      loadAdminCalendar(todayStr);
+    });
+  }
+
   // Filter buttons
   ['all', 'pending', 'confirmed', 'rejected'].forEach((f) => {
     const btn = document.getElementById(`filter_${f}`);
@@ -36,6 +98,158 @@ function initAdminEvents() {
 
   const blockForm = document.getElementById('blockSlotForm');
   if (blockForm) blockForm.addEventListener('submit', submitBlockSlot);
+}
+
+/* 1. ADMIN CALENDAR RENDERER (INTERACTIVE 5x7 GRID) */
+async function loadAdminCalendar(dateStr = '') {
+  const container = document.getElementById('adminCalendarRenderContainer');
+  if (!container) return;
+  container.innerHTML = '<div style="padding: 2.5rem; text-align: center; color: #64748b;">Đang tải lịch Giám đốc...</div>';
+
+  try {
+    const url = dateStr ? `/api/admin/week-slots?date=${dateStr}` : '/api/admin/week-slots';
+    const res = await fetch(url);
+    if (res.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
+    const data = await res.json();
+    adminCalendarData = data;
+
+    // Header Display
+    document.getElementById('adminWeekRangeDisplay').textContent = 
+      `Tuần từ ${formatDateVN(data.start_date)} đến ${formatDateVN(data.end_date)}`;
+
+    renderAdminCalendarGrid(data, container);
+  } catch (err) {
+    container.innerHTML = '<div style="padding: 2.5rem; text-align: center; color: #ef4444;">Lỗi khi tải lịch!</div>';
+  }
+}
+
+function renderAdminCalendarGrid(data, container) {
+  container.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'week-grid-container';
+
+  data.days.forEach((dayItem) => {
+    const dayInfo = dayItem.day_info;
+    const col = document.createElement('div');
+    col.className = `day-column ${dayInfo.is_today ? 'is-today' : ''}`;
+
+    col.innerHTML = `
+      <div class="day-column-header">
+        <div class="day-title">
+          ${dayInfo.day_name}
+          ${dayInfo.is_today ? '<span class="today-tag">Hôm nay</span>' : ''}
+        </div>
+        <div class="day-subtitle">${dayInfo.day_number} (${dayInfo.date})</div>
+      </div>
+      <div class="day-slots-list" id="admin_slots_day_${dayInfo.date}"></div>
+    `;
+
+    const slotsList = col.querySelector(`#admin_slots_day_${dayInfo.date}`);
+    dayItem.slots.forEach((slot) => {
+      const card = createAdminSlotCard(slot, dayInfo);
+      slotsList.appendChild(card);
+    });
+
+    grid.appendChild(col);
+  });
+
+  container.appendChild(grid);
+}
+
+function createAdminSlotCard(slot, dayInfo) {
+  const card = document.createElement('div');
+  card.className = `slot-card status-${slot.status}`;
+
+  let badgeHtml = '';
+  let controlBtn = '';
+  let infoText = '';
+
+  if (slot.status === 'available') {
+    badgeHtml = '<span class="badge badge-success">● Còn trống</span>';
+    infoText = '<div class="slot-info" style="color: #10b981;">Ca làm việc đang mở</div>';
+    controlBtn = `
+      <button class="btn btn-outline" style="width: 100%; font-size: 0.725rem; padding: 0.35rem; color: #dc2626; border-color: #fecaca;" 
+        onclick="toggleSlotLock('${dayInfo.date}', '${slot.time}', 'Giám đốc bận việc riêng')">
+        🔒 Khóa ca này
+      </button>
+    `;
+  } else if (slot.status === 'confirmed') {
+    badgeHtml = '<span class="badge badge-danger">✕ Kín lịch</span>';
+    infoText = `<div class="slot-info" style="font-weight: 700; color: #0f172a;">${escapeHtml(slot.company_name || 'Đã có lịch')}</div>`;
+    controlBtn = `
+      <button class="btn btn-outline" style="width: 100%; font-size: 0.725rem; padding: 0.35rem; color: #10b981; border-color: #a7f3d0;" 
+        onclick="toggleSlotLock('${dayInfo.date}', '${slot.time}')">
+        🔓 Mở lại ca trống
+      </button>
+    `;
+  } else {
+    // Pending
+    badgeHtml = `<span class="badge badge-warning">⏳ Chờ duyệt (${slot.pending_count || 1})</span>`;
+    infoText = `<div class="slot-info" style="color: #d97706; font-weight: 600;">${escapeHtml(slot.company_name || 'Đang chờ duyệt')}</div>`;
+    controlBtn = `
+      <div style="display: flex; gap: 0.35rem;">
+        <button class="btn btn-primary" style="flex: 1; font-size: 0.725rem; padding: 0.35rem;" 
+          onclick="openFirstPendingBooking('${dayInfo.date}', '${slot.time}')">
+          ✓ Xem & Duyệt
+        </button>
+        <button class="btn btn-outline" style="font-size: 0.725rem; padding: 0.35rem; color: #dc2626;" 
+          title="Khóa ca này" onclick="toggleSlotLock('${dayInfo.date}', '${slot.time}', 'Sếp bận họp')">
+          🔒
+        </button>
+      </div>
+    `;
+  }
+
+  card.innerHTML = `
+    <div class="slot-top">
+      <span class="slot-name">${slot.label}</span>
+      ${badgeHtml}
+    </div>
+    <div class="slot-time" style="margin-bottom: 0.25rem;">⏰ ${slot.time}</div>
+    ${infoText}
+    ${controlBtn}
+  `;
+
+  return card;
+}
+
+async function toggleSlotLock(date, timeSlot, defaultReason = 'Giám đốc bận việc riêng') {
+  let reason = defaultReason;
+  // If locking, ask for optional note
+  const card = document.querySelector(`[onclick*="${date}"][onclick*="${timeSlot}"]`);
+  
+  try {
+    const res = await fetch('/api/admin/toggle-slot-lock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        meeting_date: date,
+        time_slot: timeSlot,
+        reason: reason
+      })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      loadAdminCalendar(date);
+      loadAdminBookings();
+    } else {
+      alert(data.detail || 'Không thể thao tác');
+    }
+  } catch (err) {
+    alert('Lỗi kết nối máy chủ!');
+  }
+}
+
+function openFirstPendingBooking(date, timeSlot) {
+  const b = adminBookings.find(x => x.meeting_date === date && x.time_slot === timeSlot && x.status === 'pending');
+  if (b) {
+    openComposerModal(b.id, 'confirm');
+  } else {
+    switchAdminTab('bookings');
+  }
 }
 
 async function loadAdminBookings() {
@@ -306,4 +520,10 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+function formatDateVN(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }

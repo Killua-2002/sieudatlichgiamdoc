@@ -7,7 +7,7 @@ from pathlib import Path
 from config.settings import BASE_DIR, ADMIN_USERNAME, ADMIN_PASSWORD, COOKIE_NAME
 from src.auth import is_admin_authenticated, generate_session_token, require_admin_auth
 from src.database import get_db_connection
-from src.services.booking_service import generate_mail_client_links
+from src.services.booking_service import generate_mail_client_links, get_week_slots, toggle_admin_slot_lock
 from src.services.template_service import (
     load_templates, get_template_by_id, add_or_update_template, delete_template
 )
@@ -78,6 +78,18 @@ def admin_templates_page(request: Request):
     html_file = TEMPLATES_DIR / "admin_templates.html"
     with open(html_file, "r", encoding="utf-8") as f:
         return f.read()
+
+@router.get("/api/admin/week-slots")
+def api_admin_week_slots(request: Request, date: Optional[str] = None):
+    require_admin_auth(request)
+    data = get_week_slots(target_date_str=date, is_admin=True)
+    return data
+
+@router.post("/api/admin/toggle-slot-lock")
+def api_toggle_slot_lock(payload: BlockSlotRequest, request: Request):
+    require_admin_auth(request)
+    res = toggle_admin_slot_lock(payload.meeting_date, payload.time_slot, payload.reason or "Giám đốc bận")
+    return res
 
 @router.get("/api/admin/bookings")
 def api_get_admin_bookings(request: Request):

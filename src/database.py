@@ -26,8 +26,15 @@ def init_db():
             questions TEXT,
             status TEXT DEFAULT 'pending', -- 'pending', 'confirmed', 'rejected'
             email_sent TEXT,
+            client_ip TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    # Ensure client_ip column exists if migrating from older db
+    cursor.execute("PRAGMA table_info(bookings)")
+    columns = [row["name"] for row in cursor.fetchall()]
+    if "client_ip" not in columns:
+        cursor.execute("ALTER TABLE bookings ADD COLUMN client_ip TEXT")
+
     conn.commit()
     conn.close()

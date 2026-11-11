@@ -1,5 +1,5 @@
 # src/routes/client_routes.py
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from typing import Optional
@@ -11,6 +11,12 @@ from config.settings import BASE_DIR
 router = APIRouter()
 
 TEMPLATES_DIR = BASE_DIR / "templates"
+
+def get_client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "127.0.0.1"
 
 class BookingRequest(BaseModel):
     company_name: str
@@ -31,8 +37,9 @@ def index_page():
         return f.read()
 
 @router.get("/api/week-slots")
-def api_week_slots(date: Optional[str] = Query(None)):
-    data = get_week_slots(date)
+def api_week_slots(request: Request, date: Optional[str] = Query(None)):
+    client_ip = get_client_ip(request)
+    data = get_week_slots(target_date_str=date, client_ip=client_ip, is_admin=False)
     return data
 
 @router.get("/api/search-company")
@@ -41,8 +48,9 @@ def api_search_company(q: str = Query("", min_length=1)):
     return {"query": q, "results": predictions}
 
 @router.post("/api/bookings")
-def api_create_booking(booking: BookingRequest):
-    res = create_booking(booking.model_dump())
+def api_create_booking(booking: BookingRequest, request: Request):
+    client_ip = get_client_ip(request)
+    res = create_booking(booking.model_dump(), client_ip=client_ip)
     if not res["success"]:
         raise HTTPException(status_code=400, detail=res["message"])
     return res
