@@ -24,17 +24,34 @@ def init_db():
             purpose TEXT,
             attendees_count INTEGER DEFAULT 1,
             questions TEXT,
-            status TEXT DEFAULT 'pending', -- 'pending', 'confirmed', 'rejected'
+            status TEXT DEFAULT 'pending', -- 'pending', 'confirmed', 'rescheduled', 'cancelled', 'completed'
             email_sent TEXT,
             client_ip TEXT,
+            booking_type TEXT DEFAULT 'business', -- 'business' or 'individual'
+            is_sig_member INTEGER DEFAULT 0,     -- 1 if member of SIG, 0 otherwise
+            department TEXT,                      -- Khoa / Phòng / Bộ phận
+            location TEXT,                        -- Địa điểm họp
+            google_calendar_url TEXT,             -- Link thêm nhanh vào Google Calendar
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    # Ensure client_ip column exists if migrating from older db
+
+    # Check and migrate columns if missing
     cursor.execute("PRAGMA table_info(bookings)")
     columns = [row["name"] for row in cursor.fetchall()]
-    if "client_ip" not in columns:
-        cursor.execute("ALTER TABLE bookings ADD COLUMN client_ip TEXT")
+
+    new_columns = [
+        ("client_ip", "TEXT"),
+        ("booking_type", "TEXT DEFAULT 'business'"),
+        ("is_sig_member", "INTEGER DEFAULT 0"),
+        ("department", "TEXT"),
+        ("location", "TEXT"),
+        ("google_calendar_url", "TEXT")
+    ]
+
+    for col_name, col_type in new_columns:
+        if col_name not in columns:
+            cursor.execute(f"ALTER TABLE bookings ADD COLUMN {col_name} {col_type}")
 
     conn.commit()
     conn.close()

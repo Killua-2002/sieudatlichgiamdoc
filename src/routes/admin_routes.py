@@ -1,13 +1,18 @@
 # src/routes/admin_routes.py
+from datetime import datetime
 from fastapi import APIRouter, Request, Response, HTTPException, status, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 from typing import Optional, List
 from pathlib import Path
 from config.settings import BASE_DIR, ADMIN_USERNAME, ADMIN_PASSWORD, COOKIE_NAME
+from config.constants import LOCATIONS
 from src.auth import is_admin_authenticated, generate_session_token, require_admin_auth
 from src.database import get_db_connection
-from src.services.booking_service import generate_mail_client_links, get_week_slots, toggle_admin_slot_lock
+from src.services.booking_service import (
+    generate_mail_client_links, get_week_slots, get_month_slots, 
+    toggle_admin_slot_lock, generate_google_calendar_link
+)
 from src.services.template_service import (
     load_templates, get_template_by_id, add_or_update_template, delete_template
 )
@@ -20,7 +25,7 @@ class LoginRequest(BaseModel):
     password: str
 
 class BookingActionRequest(BaseModel):
-    action: str  # 'confirm' or 'reject'
+    action: str  # 'confirm', 'reschedule', 'cancel', 'complete'
     template_id: Optional[str] = "in_person"
     custom_subject: Optional[str] = ""
     custom_body: Optional[str] = ""
@@ -85,6 +90,14 @@ def api_admin_week_slots(request: Request, date: Optional[str] = None):
     data = get_week_slots(target_date_str=date, is_admin=True)
     return data
 
+@router.get("/api/admin/month-slots")
+def api_admin_month_slots(request: Request, year: Optional[int] = None, month: Optional[int] = None):
+    require_admin_auth(request)
+    now = datetime.now()
+    y = year or now.year
+    m = month or now.month
+    return get_month_slots(year=y, month=m, is_admin=True)
+
 @router.post("/api/admin/toggle-slot-lock")
 def api_toggle_slot_lock(payload: BlockSlotRequest, request: Request):
     require_admin_auth(request)
@@ -115,7 +128,26 @@ def api_booking_action(booking_id: int, payload: BookingActionRequest, request: 
         raise HTTPException(status_code=404, detail="Không tìm thấy lịch hẹn")
 
     b_dict = dict(booking)
-    new_status = 'confirmed' if payload.action == 'confirm' else 'rejected'
+
+    # Status mapping
+    status_map = {
+        "confirm": "confirmed",
+        "reschedule": "rescheduled",
+        "cancel": "cancelled",
+        "complete": "completed"
+    }
+    new_status = status_map.get(payload.action, "confirmed")
+
+    # Generate or retrieve Google Calendar Link
+    cal_link = b_dict.get("google_calendar_url")
+    if not cal_link:
+        cal_link = generate_google_calendar_link(
+            title=f"Lịch họp Giám đốc - {b_dict['company_name']}",
+            date_str=b_dict["meeting_date"],
+            time_slot=b_dict["time_slot"],
+            location=b_dict.get("location", "Phòng Giám Đốc Bệnh Viện (Lầu 9)"),
+            description=f"Nội dung: {b_dict.get('purpose', '')} - Đại diện: {b_dict.get('contact_person', '')}"
+        )
 
     # Prepare subject & body
     if payload.custom_subject and payload.custom_body:
@@ -125,12 +157,23 @@ def api_booking_action(booking_id: int, payload: BookingActionRequest, request: 
         tpl = get_template_by_id(payload.template_id or "in_person")
         if not tpl:
             tpl = load_templates()[0]
+        
+        is_individual = b_dict.get("booking_type") == "individual"
+        loai_doi_tuong = "Anh/Chị" if is_individual else "Quý Doanh nghiệp/Tổ chức"
+        ten_doi_tuong = b_dict["contact_person"] if is_individual else b_dict["company_name"]
+
         final_subject = tpl["subject"].replace("{ngay_hop}", b_dict["meeting_date"])
-        final_body = tpl["body"].replace("{ten_cty}", b_dict["company_name"]) \
-                                 .replace("{nguoi_lien_he}", b_dict["contact_person"]) \
-                                 .replace("{ngay_hop}", b_dict["meeting_date"]) \
-                                 .replace("{gio_hop}", b_dict["time_slot"]) \
-                                 .replace("{ghi_chu_them}", "")
+        final_body = tpl["body"] \
+            .replace("{loai_doi_tuong}", loai_doi_tuong) \
+            .replace("{ten_doi_tuong}", ten_doi_tuong) \
+            .replace("{ten_cty}", b_dict["company_name"]) \
+            .replace("{nguoi_lien_he}", b_dict["contact_person"]) \
+            .replace("{ngay_hop}", b_dict["meeting_date"]) \
+            .replace("{gio_hop}", b_dict["time_slot"]) \
+            .replace("{dia_diem}", b_dict.get("location", "Phòng Giám Đốc Bệnh Viện (Lầu 9)")) \
+            .replace("{muc_dich}", b_dict.get("purpose", "Trao đổi công tác")) \
+            .replace("{google_calendar_link}", cal_link) \
+            .replace("{ghi_chu_them}", "")
 
     # Generate quick mail client links
     mail_links = generate_mail_client_links(b_dict["email"], final_subject, final_body)
@@ -138,34 +181,30 @@ def api_booking_action(booking_id: int, payload: BookingActionRequest, request: 
     # Save to DB
     cursor.execute("""
         UPDATE bookings 
-        SET status = ?, email_sent = ?
+        SET status = ?, email_sent = ?, google_calendar_url = ?
         WHERE id = ?
-    """, (new_status, final_body, booking_id))
+    """, (new_status, final_body, cal_link, booking_id))
     conn.commit()
     conn.close()
+
+    status_labels = {
+        "confirmed": "Đã phê duyệt (Đã xác nhận)",
+        "rescheduled": "Đã dời lịch hẹn",
+        "cancelled": "Đã từ chối / Hủy lịch",
+        "completed": "Đã hoàn thành buổi họp"
+    }
 
     return {
         "success": True,
         "new_status": new_status,
+        "status_label": status_labels.get(new_status, new_status),
         "mail_links": mail_links,
+        "google_calendar_link": cal_link,
         "subject": final_subject,
         "body": final_body,
         "guest_email": b_dict["email"],
-        "message": f"Đã cập nhật trạng thái '{new_status}' thành công!"
+        "message": f"Đã cập nhật trạng thái: {status_labels.get(new_status, new_status)}!"
     }
-
-@router.post("/api/admin/block-slot")
-def api_block_slot(payload: BlockSlotRequest, request: Request):
-    require_admin_auth(request)
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO bookings (company_name, tax_code, contact_person, phone, email, meeting_date, time_slot, purpose, attendees_count, questions, status)
-        VALUES (?, 'NOIBO-001', 'Trợ lý Giám đốc', 'Nội bộ', 'admin@noibo.com', ?, ?, ?, 1, '', 'confirmed')
-    """, (f"[LỊCH NỘI BỘ] {payload.reason}", payload.meeting_date, payload.time_slot, payload.reason))
-    conn.commit()
-    conn.close()
-    return {"success": True, "message": f"Đã khóa thành công khung giờ {payload.time_slot} ngày {payload.meeting_date}!"}
 
 @router.get("/api/admin/templates")
 def api_get_templates(request: Request):

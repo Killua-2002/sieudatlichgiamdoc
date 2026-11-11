@@ -1,20 +1,32 @@
 [
   {
     "id": "in_person",
-    "title": "Gặp tại Văn phòng",
+    "title": "Phê Duyệt - Gặp Trực Tiếp",
     "subject": "[XÁC NHẬN] Lịch hẹn làm việc với Giám đốc ({ngay_hop})",
-    "body": "Kính gửi Quý Doanh nghiệp {ten_cty},\nNgười liên hệ: {nguoi_lien_he}\n\nChúng tôi trân trọng thông báo: Yêu cầu đặt lịch hẹn với Giám đốc của Quý đơn vị đã được PHÊ DUYỆT.\n\nTHÔNG TIN LỊCH HẸN:\n- Thời gian: {gio_hop} ngày {ngay_hop}\n- Hình thức: Gặp trực tiếp tại Văn phòng\n- Địa chỉ: Tầng 12, Tòa nhà Trụ sở, TP. Hà Nội\n- Lưu ý: Quý khách vui lòng gửi xe tại hầm B2 và xuất trình CCCD tại bàn lễ tân để nhận thẻ lên tầng.\n\n{ghi_chu_them}\n\nTrân trọng cảm ơn,\nBộ phận Trợ lý Giám đốc."
+    "body": "Kính gửi {loai_doi_tuong} {ten_doi_tuong},\nNgười đại diện: {nguoi_lien_he}\n\nChúng tôi trân trọng thông báo: Yêu cầu đặt lịch hẹn với Giám đốc đã được PHÊ DUYỆT CHÍNH THỨC.\n\nTHÔNG TIN LỊCH HẸN:\n- Thời gian: {gio_hop} ngày {ngay_hop}\n- Địa điểm: {dia_diem}\n- Nội dung làm việc: {muc_dich}\n\nLƯU LỊCH VÀO GOOGLE CALENDAR:\n👉 Bấm vào đường dẫn sau để tự động thêm lịch họp vào Google Calendar của bạn:\n{google_calendar_link}\n\n{ghi_chu_them}\n\nTrân trọng cảm ơn,\nBộ phận Trợ lý Giám đốc."
   },
   {
     "id": "online",
-    "title": "Họp Trực Tuyến (Google Meet)",
+    "title": "Phê Duyệt - Họp Trực Tuyến",
     "subject": "[XÁC NHẬN] Lịch họp trực tuyến với Giám đốc ({ngay_hop})",
-    "body": "Kính gửi Quý Doanh nghiệp {ten_cty},\nNgười liên hệ: {nguoi_lien_he}\n\nChúng tôi trân trọng thông báo: Yêu cầu đặt lịch hẹn với Giám đốc của Quý đơn vị đã được PHÊ DUYỆT (HỌP TRỰC TUYẾN).\n\nTHÔNG TIN LỊCH HẸN:\n- Thời gian: {gio_hop} ngày {ngay_hop}\n- Hình thức: Họp Trực Tuyến qua Google Meet\n- Đường dẫn tham gia: https://meet.google.com/abc-xyz-meeting\n- Nội dung trao đổi: Trao đổi công việc theo phiếu đăng ký\n\n{ghi_chu_them}\n\nTrân trọng cảm ơn,\nBộ phận Trợ lý Giám đốc."
+    "body": "Kính gửi {loai_doi_tuong} {ten_doi_tuong},\nNgười đại diện: {nguoi_lien_he}\n\nChúng tôi trân trọng thông báo: Yêu cầu đặt lịch hẹn với Giám đốc đã được PHÊ DUYỆT (HỌP TRỰC TUYẾN).\n\nTHÔNG TIN LỊCH HẸN:\n- Thời gian: {gio_hop} ngày {ngay_hop}\n- Hình thức: Họp Trực Tuyến qua Google Meet / Zoom\n- Đường dẫn tham gia: https://meet.google.com/abc-xyz-meeting\n- Nội dung trao đổi: {muc_dich}\n\nLƯU LỊCH VÀO GOOGLE CALENDAR:\n👉 Bấm vào đường dẫn sau để tự động thêm lịch họp vào Google Calendar của bạn:\n{google_calendar_link}\n\n{ghi_chu_them}\n\nTrân trọng cảm ơn,\nBộ phận Trợ lý Giám đốc."
   },
   {
     "id": "reschedule",
-    "title": "Đổi giờ / Sếp bận công tác",
-    "subject": "[THÔNG BÁO] Về việc điều chỉnh lịch hẹn làm việc với Giám đốc ({ngay_hop})",
-    "body": "Kính gửi Quý Doanh nghiệp {ten_cty},\nNgười liên hệ: {nguoi_lien_he}\n\nRất tiếc vào khung giờ {gio_hop} ngày {ngay_hop}, Giám đốc có lịch công tác đột xuất của Ban điều hành nên chưa thể tiếp đoàn vào thời gian này.\n\n{ghi_chu_them}\n\nKính mong Quý đơn vị thông cảm. Quý đơn vị vui lòng truy cập lại cổng đặt lịch để chọn khung giờ phù hợp khác.\n\nTrân trọng cảm ơn,\nBộ phận Trợ lý Giám đốc."
+    "title": "Dời Lịch / Đổi Giờ Hẹn",
+    "subject": "[THÔNG BÁO] Về việc điều chỉnh / dời lịch hẹn với Giám đốc ({ngay_hop})",
+    "body": "Kính gửi {loai_doi_tuong} {ten_doi_tuong},\nNgười đại diện: {nguoi_lien_he}\n\nDo Giám đốc có lịch công tác đột xuất của Ban Điều Hành vào khung giờ {gio_hop} ngày {ngay_hop}, chúng tôi xin phép được DỜI LỊCH / ĐỔI GIỜ buổi làm việc.\n\n{ghi_chu_them}\n\nKính mong Quý đơn vị/anh chị thông cảm. Quý vị vui lòng truy cập lại cổng đặt lịch để chọn khung giờ khác phù hợp, hoặc liên hệ trực tiếp Trợ lý để sắp xếp giờ ưu tiên.\n\nTrân trọng cảm ơn,\nBộ phận Trợ lý Giám đốc."
+  },
+  {
+    "id": "cancel",
+    "title": "Từ Chối / Hủy Lịch Hẹn",
+    "subject": "[THÔNG BÁO] Phản hồi về yêu cầu đặt lịch hẹn với Giám đốc ({ngay_hop})",
+    "body": "Kính gửi {loai_doi_tuong} {ten_doi_tuong},\nNgười đại diện: {nguoi_lien_he}\n\nCảm ơn Quý vị đã gửi phiếu đăng ký hẹn làm việc với Giám đốc vào {gio_hop} ngày {ngay_hop}.\n\nRất tiếc vào thời điểm này, do lịch công tác đã kín hoặc nội dung đề xuất chưa phù hợp trong tuần này, Giám đốc chưa thể tiếp đoàn/anh chị.\n\n{ghi_chu_them}\n\nRất mong Quý vị thông cảm và có dịp hợp tác trong thời gian tới.\n\nTrân trọng cảm ơn,\nBộ phận Trợ lý Giám đốc."
+  },
+  {
+    "id": "complete",
+    "title": "Đã Hoàn Thành - Cảm Ơn",
+    "subject": "[CẢM ƠN] Buổi làm việc với Giám đốc ngày {ngay_hop}",
+    "body": "Kính gửi {loai_doi_tuong} {ten_doi_tuong},\n\nTrân trọng cảm ơn Quý vị đã có buổi trao đổi và làm việc hiệu quả cùng Giám đốc vào ngày {ngay_hop}.\n\nCác nội dung và đầu mối công việc đã thống nhất sẽ được bộ phận chuyên trách tiếp tục theo dõi và phối hợp.\n\nTrân trọng cảm ơn,\nBộ phận Trợ lý Giám đốc."
   }
 ]

@@ -18,8 +18,8 @@
           💼
         </div>
         <div>
-          <h1 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; line-height: 1.2;">Lịch Tiếp Doanh Nghiệp - Giám Đốc</h1>
-          <p style="font-size: 0.75rem; color: #64748b;">Đăng ký khung giờ làm việc và trao đổi công tác</p>
+          <h1 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; line-height: 1.2;">Lịch Tiếp Khách - Giám Đốc</h1>
+          <p style="font-size: 0.75rem; color: #64748b;">Đăng ký làm việc dành cho Doanh nghiệp & Cá nhân</p>
         </div>
       </div>
       <a href="/login" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.4rem 0.85rem;">
@@ -28,7 +28,7 @@
     </div>
   </header>
 
-  <main class="container" style="padding-top: 1.75rem; padding-bottom: 3rem;">
+  <main class="container" style="padding-top: 1.5rem; padding-bottom: 3rem;">
     <!-- Banner -->
     <div class="calendar-header-banner">
       <div>
@@ -36,23 +36,24 @@
           📅 Hệ Thống Đặt Lịch Hẹn Trực Tuyến
         </h2>
         <p style="font-size: 0.875rem; opacity: 0.95;">
-          Hệ thống bố trí <strong>5 ca làm việc chuẩn mỗi ngày</strong>. Doanh nghiệp vui lòng chọn khung giờ trống (màu xanh lá) để gửi phiếu đăng ký.
+          Bố trí <strong>5 ca làm việc chuẩn mỗi ngày</strong>. Hỗ trợ đăng ký cho Doanh nghiệp hoặc Cá nhân (thuộc Khoa/Phòng/Bộ phận SIG).
         </p>
       </div>
-      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
         <span class="badge badge-success">● Còn trống</span>
         <span class="badge badge-warning">⏳ Chờ duyệt</span>
         <span class="badge badge-danger">✕ Đã kín</span>
+        <span class="badge" style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe;">🔄 Đã dời</span>
       </div>
     </div>
 
-    <!-- Toolbar: Week Navigation & View Switch -->
+    <!-- Toolbar: Week/Month Navigation & View Switch -->
     <div class="calendar-toolbar">
       <div class="week-nav-group">
-        <button class="btn btn-outline" id="btnPrevWeek">◀ Tuần trước</button>
+        <button class="btn btn-outline" id="btnPrevWeek">◀ Trước</button>
         <button class="btn btn-outline" id="btnCurrentWeek">Hôm nay</button>
-        <button class="btn btn-outline" id="btnNextWeek">Tuần sau ▶</button>
-        <span class="current-week-display" id="weekRangeDisplay">Đang tải tuần...</span>
+        <button class="btn btn-outline" id="btnNextWeek">Tiếp ▶</button>
+        <span class="current-week-display" id="weekRangeDisplay">Đang tải...</span>
       </div>
 
       <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -64,13 +65,16 @@
           <button class="view-switch-btn" id="btnViewTable">
             <span>𝌆</span> Bảng Lịch (T2 - CN)
           </button>
+          <button class="view-switch-btn" id="btnViewMonth">
+            <span>📅</span> Xem Theo Tháng
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Mouse Wheel Scroll Notification Hint -->
+    <!-- Hint -->
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.75rem; color: #64748b;">
-      <span>💡 <em>Mẹo: Di chuột vào bảng lịch và lăn chuột dọc để cuộn ngang mượt mà.</em></span>
+      <span>💡 <em>Mẹo: Trên PC lịch tự động căn vừa màn hình; trên thiết bị nhỏ có thể lăn chuột ngang mượt mà.</em></span>
     </div>
 
     <!-- Calendar Scrollable Area with Mouse Wheel support -->
@@ -96,48 +100,120 @@
         <input type="hidden" id="modalMeetingDate">
         <input type="hidden" id="modalTimeSlot">
 
-        <!-- Ô TÌM KIẾM DỰ ĐOÁN THÔNG MINH (GOOGLE-STYLE TYPEAHEAD) -->
+        <!-- 1. CHỌN ĐỐI TƯỢNG: DOANH NGHIỆP HOẶC CÁ NHÂN -->
         <div class="form-group">
-          <label class="form-label" style="color: #2563eb;">
-            🔍 Tìm Doanh Nghiệp (Gõ Tên Hoặc Mã Số Thuế 10-13 Số) *
-          </label>
-          <div class="predict-search-wrapper">
-            <input type="text" id="companySearchInput" class="form-control" autocomplete="off"
-              placeholder="VD: Viettel, FPT, 0100109106, Vinamilk..." required>
-            <!-- Dropdown autocomplete menu -->
-            <div id="predictDropdown" class="predict-dropdown"></div>
-          </div>
-          <span style="font-size: 0.725rem; color: #64748b;">Gõ từ khóa để nhận gợi ý tức thì, hoặc tự gõ nếu doanh nghiệp mới.</span>
-        </div>
-
-        <div class="form-row form-row-2">
-          <div class="form-group">
-            <label class="form-label">Mã Số Thuế / Chi Nhánh *</label>
-            <input type="text" id="taxCode" class="form-control" placeholder="Tự điền khi chọn gợi ý" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Tên Doanh Nghiệp *</label>
-            <input type="text" id="companyName" class="form-control" placeholder="Tên chính thức trên ĐKKD" required>
+          <label class="form-label" style="color: #2563eb;">Đối Tượng Đăng Ký Hẹn Gặp *</label>
+          <div class="user-type-switcher">
+            <button type="button" class="user-type-btn active" id="typeBtnBusiness">
+              🏢 Doanh Nghiệp / Tổ Chức
+            </button>
+            <button type="button" class="user-type-btn" id="typeBtnIndividual">
+              👤 Cá Nhân / Cán Bộ
+            </button>
           </div>
         </div>
 
-        <div class="form-row form-row-2">
-          <div class="form-group">
-            <label class="form-label">Họ Tên Người Đại Diện *</label>
-            <input type="text" id="contactPerson" class="form-control" placeholder="Nguyễn Văn A" required>
+        <!-- 2A. KHU VỰC DOANH NGHIỆP -->
+        <div id="businessFieldsGroup">
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label">🔍 Tìm Doanh Nghiệp (Gõ Tên Hoặc Mã Số Thuế 10-13 Số) *</label>
+            <div class="predict-search-wrapper">
+              <input type="text" id="companySearchInput" class="form-control" autocomplete="off"
+                placeholder="VD: Viettel, FPT, 0100109106, Vinamilk...">
+              <div id="predictDropdown" class="predict-dropdown"></div>
+            </div>
           </div>
+
+          <div class="form-row form-row-2">
+            <div class="form-group">
+              <label class="form-label">Mã Số Thuế / Chi Nhánh *</label>
+              <input type="text" id="taxCode" class="form-control" placeholder="Mã số thuế hoặc mã chi nhánh">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tên Doanh Nghiệp / Tổ Chức *</label>
+              <input type="text" id="companyName" class="form-control" placeholder="Tên chính thức pháp nhân">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 0.85rem;">
+            <label class="form-label">Họ Tên Người Đại Diện Liên Hệ *</label>
+            <input type="text" id="contactPerson" class="form-control" placeholder="Nguyễn Văn A (Chức vụ/Đại diện)">
+          </div>
+        </div>
+
+        <!-- 2B. KHU VỰC CÁ NHÂN -->
+        <div id="individualFieldsGroup" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">Họ Và Tên Cá Nhân *</label>
+            <input type="text" id="individualName" class="form-control" placeholder="Họ và tên người đăng ký">
+          </div>
+
+          <!-- Xác nhận thuộc SIG -->
+          <div class="sig-box" style="margin-top: 0.75rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 700; color: #166534; cursor: pointer;">
+              <input type="checkbox" id="isSigMemberCheckbox" style="width: 16px; height: 16px;">
+              <span>Thuộc SIG (Bệnh viện / Đơn vị thành viên trong hệ thống)</span>
+            </label>
+
+            <div id="sigDepartmentGroup" style="display: none; margin-top: 0.75rem;">
+              <label class="form-label" style="color: #166534;">Xác Nhận Thuộc: Khoa / Phòng / Bộ Phận Nào *</label>
+              <input type="text" id="sigDepartmentInput" class="form-control" 
+                placeholder="VD: Khoa Cấp cứu, Khoa Nội, Phòng Kế hoạch Tổng hợp, Ban Dược...">
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. SĐT & EMAIL -->
+        <div class="form-row form-row-2">
           <div class="form-group">
             <label class="form-label">Số Điện Thoại Liên Hệ *</label>
             <input type="tel" id="phone" class="form-control" placeholder="0912 xxx xxx" required>
           </div>
+          <div class="form-group">
+            <label class="form-label">Email Nhận Xác Nhận & Lịch Họp *</label>
+            <input type="email" id="email" class="form-control" placeholder="email@domain.com" required>
+          </div>
         </div>
 
+        <!-- 4. CHỌN ĐỊA ĐIỂM / HÌNH THỨC -->
         <div class="form-group">
-          <label class="form-label">Email Nhận Thông Báo Duyệt Lịch *</label>
-          <input type="email" id="email" class="form-control" placeholder="email@doanhnghiep.com" required>
-          <span style="font-size: 0.725rem; color: #64748b;">Trợ lý Giám đốc sẽ gửi thư xác nhận chính thức vào email này.</span>
+          <label class="form-label" style="color: #2563eb;">Địa Điểm & Hình Thức Buổi Hẹn *</label>
+          <div class="location-radio-group">
+            <label class="location-radio-label">
+              <input type="radio" name="meetingLocation" value="Phòng Giám Đốc Bệnh Viện (Lầu 9)" checked>
+              <div>
+                <strong>a/ Phòng Giám Đốc Bệnh Viện (Lầu 9)</strong>
+                <div style="font-size: 0.75rem; color: #64748b;">Gặp trực tiếp tại Văn phòng Giám đốc Bệnh viện</div>
+              </div>
+            </label>
+
+            <label class="location-radio-label">
+              <input type="radio" name="meetingLocation" value="Phòng họp Lầu 8, Tòa nhà 9-15 Trịnh Văn Cấn">
+              <div>
+                <strong>b/ Phòng họp Lầu 8, Tòa nhà 9-15 Trịnh Văn Cấn</strong>
+                <div style="font-size: 0.75rem; color: #64748b;">Phường Cầu Ông Lãnh, Quận 1, TP. HCM</div>
+              </div>
+            </label>
+
+            <label class="location-radio-label">
+              <input type="radio" name="meetingLocation" value="Phòng họp Lầu 7, Tòa nhà 1-3 Trịnh Văn Cấn">
+              <div>
+                <strong>c/ Phòng họp Lầu 7, Tòa nhà 1-3 Trịnh Văn Cấn</strong>
+                <div style="font-size: 0.75rem; color: #64748b;">Phường Cầu Ông Lãnh, Quận 1, TP. HCM</div>
+              </div>
+            </label>
+
+            <label class="location-radio-label">
+              <input type="radio" name="meetingLocation" value="Họp Trực Tuyến (Online Google Meet / Zoom)">
+              <div>
+                <strong>💻 Họp Trực Tuyến (Online Google Meet / Zoom)</strong>
+                <div style="font-size: 0.75rem; color: #64748b;">Nhận link phòng họp trực tuyến tự động qua thư</div>
+              </div>
+            </label>
+          </div>
         </div>
 
+        <!-- 5. NỘI DUNG & SỐ LƯỢNG -->
         <div class="form-group">
           <label class="form-label">Mục Đích Buổi Làm Việc *</label>
           <textarea id="purpose" rows="2" class="form-control" placeholder="Tóm tắt nội dung chính cần trao đổi cùng Giám đốc..." required></textarea>
@@ -164,19 +240,29 @@
 
   <!-- POP-UP THÀNH CÔNG -->
   <div id="successModal" class="modal-overlay hidden">
-    <div class="modal-box" style="max-width: 440px; text-align: center; padding: 2rem;">
+    <div class="modal-box" style="max-width: 480px; text-align: center; padding: 2rem;">
       <div style="width: 58px; height: 58px; background: #ecfdf5; color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1rem;">
         ✓
       </div>
       <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">Đăng Ký Thành Công!</h3>
       <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.25rem;">
-        Yêu cầu đặt lịch hẹn của Quý Doanh nghiệp đã được chuyển tới Bàn làm việc Trợ lý Giám đốc.
+        Yêu cầu đặt lịch hẹn đã được chuyển tới Bàn làm việc Trợ lý Giám đốc để đối chiếu lịch.
       </p>
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem; text-align: left; font-size: 0.8rem; margin-bottom: 1.25rem;">
+
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem; text-align: left; font-size: 0.8rem; margin-bottom: 1rem;">
         <p style="margin-bottom: 0.25rem;"><strong>Thời gian:</strong> <span id="succModalTime" style="color: #2563eb; font-weight: 700;">--</span></p>
-        <p style="margin-bottom: 0.25rem;"><strong>Doanh nghiệp:</strong> <span id="succModalCompany">--</span></p>
+        <p style="margin-bottom: 0.25rem;"><strong>Đối tượng:</strong> <span id="succModalCompany">--</span></p>
+        <p style="margin-bottom: 0.25rem;"><strong>Địa điểm:</strong> <span id="succModalLocation">--</span></p>
         <p><strong>Hộp thư nhận duyệt:</strong> <span id="succModalEmail">--</span></p>
       </div>
+
+      <!-- Quick Google Calendar Sync -->
+      <div style="margin-bottom: 1.25rem;">
+        <a id="succModalGgCalBtn" href="#" target="_blank" class="btn btn-outline" style="width: 100%; border-color: #3b82f6; color: #2563eb; font-size: 0.825rem; gap: 0.5rem; display: none;">
+          📅 Thêm Nhanh Vào Google Calendar Của Bạn
+        </a>
+      </div>
+
       <button class="btn btn-primary" id="successModalCloseBtn" style="width: 100%;">
         Đã hiểu, quay về Lịch
       </button>

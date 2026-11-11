@@ -32,39 +32,46 @@
     </div>
   </header>
 
-  <main class="container" style="padding-top: 1.75rem; padding-bottom: 3rem;">
+  <main class="container" style="padding-top: 1.5rem; padding-bottom: 3rem;">
     
     <!-- Admin View Switcher Tabs -->
-    <div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--slate-200); margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
-      <button id="adminTabBtn_calendar" class="btn btn-primary" onclick="switchAdminTab('calendar')" style="border-radius: 8px 8px 0 0;">
-        📅 Bảng Lịch Trực Quan Của Sếp (Khóa/Mở Ca)
+    <div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--slate-200); margin-bottom: 1.25rem; padding-bottom: 0.5rem; flex-wrap: wrap;">
+      <button id="adminTabBtn_calendar" class="btn btn-primary" onclick="switchAdminTab('calendar')">
+        📅 Bảng Lịch Trực Quan Giám Đốc (1-Click Khóa/Mở Ca)
       </button>
-      <button id="adminTabBtn_bookings" class="btn btn-outline" onclick="switchAdminTab('bookings')" style="border-radius: 8px 8px 0 0;">
-        📋 Danh Sách Phiếu Đăng Ký Chờ Duyệt
+      <button id="adminTabBtn_bookings" class="btn btn-outline" onclick="switchAdminTab('bookings')">
+        📋 Danh Sách Phiếu Hẹn & Phê Duyệt
       </button>
     </div>
 
     <!-- TAB 1: ADMIN VISUAL CALENDAR (CUSTOMIZE & LOCK SCHEDULE) -->
     <section id="adminSection_calendar">
-      <!-- Week Navigation Toolbar -->
+      <!-- Week/Month Navigation Toolbar -->
       <div class="calendar-toolbar" style="margin-bottom: 1rem;">
         <div class="week-nav-group">
-          <button class="btn btn-outline" id="adminBtnPrevWeek">◀ Tuần trước</button>
+          <button class="btn btn-outline" id="adminBtnPrevWeek">◀ Trước</button>
           <button class="btn btn-outline" id="adminBtnCurrentWeek">Hôm nay</button>
-          <button class="btn btn-outline" id="adminBtnNextWeek">Tuần sau ▶</button>
-          <span class="current-week-display" id="adminWeekRangeDisplay">Đang tải tuần...</span>
+          <button class="btn btn-outline" id="adminBtnNextWeek">Tiếp ▶</button>
+          <span class="current-week-display" id="adminWeekRangeDisplay">Đang tải...</span>
         </div>
-        <div style="font-size: 0.8rem; color: #64748b; font-weight: 600;">
-          ⚡ Chế độ Quản trị: Bấm trực tiếp vào ô để <strong>Khóa ca bận</strong> hoặc <strong>Mở lại ca trống</strong>
+
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="view-switch-container">
+            <button class="view-switch-btn active" id="adminBtnViewWeek" onclick="switchAdminCalendarMode('week')">
+              <span>⊞</span> Lưới Tuần (5x7)
+            </button>
+            <button class="view-switch-btn" id="adminBtnViewMonth" onclick="switchAdminCalendarMode('month')">
+              <span>📅</span> Theo Tháng
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Mouse Wheel hint -->
-      <div style="margin-bottom: 0.75rem; font-size: 0.75rem; color: #64748b;">
-        💡 <em>Mẹo: Lăn chuột dọc trong vùng bảng lịch để cuộn ngang mượt mà.</em>
+      <div style="margin-bottom: 0.75rem; font-size: 0.75rem; color: #64748b; display: flex; justify-content: space-between;">
+        <span>⚡ <em>Bấm trực tiếp vào bất kỳ ca nào để <strong>Khóa ca bận</strong> hoặc <strong>Mở lại ca trống</strong>.</em></span>
       </div>
 
-      <!-- Scrollable Admin Grid -->
+      <!-- Scrollable Admin Grid / Month Container -->
       <div class="calendar-scroll-wrapper" id="adminCalendarScrollWrapper" style="padding-bottom: 1.5rem;">
         <div id="adminCalendarRenderContainer">
           <!-- Dynamically populated by admin.js -->
@@ -76,68 +83,84 @@
     <section id="adminSection_bookings" style="display: none;">
       <!-- Stats Cards -->
       <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon" style="background: #eff6ff; color: #2563eb;">📋</div>
-        <div>
-          <div class="stat-val" id="count_all">0</div>
-          <div class="stat-label">Tổng đơn hẹn</div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #eff6ff; color: #2563eb;">📋</div>
+          <div>
+            <div class="stat-val" id="count_all">0</div>
+            <div class="stat-label">Tổng phiếu</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #fffbeb; color: #d97706;">⏳</div>
+          <div>
+            <div class="stat-val" id="count_pending" style="color: #d97706;">0</div>
+            <div class="stat-label">Chờ duyệt</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #ecfdf5; color: #10b981;">✓</div>
+          <div>
+            <div class="stat-val" id="count_confirmed" style="color: #10b981;">0</div>
+            <div class="stat-label">Đã xác nhận</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #eef2ff; color: #4338ca;">🔄</div>
+          <div>
+            <div class="stat-val" id="count_rescheduled" style="color: #4338ca;">0</div>
+            <div class="stat-label">Đã dời lịch</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #fef2f2; color: #ef4444;">✕</div>
+          <div>
+            <div class="stat-val" id="count_cancelled" style="color: #ef4444;">0</div>
+            <div class="stat-label">Đã từ chối / Hủy</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #f0fdf4; color: #15803d;">🎯</div>
+          <div>
+            <div class="stat-val" id="count_completed" style="color: #15803d;">0</div>
+            <div class="stat-label">Đã hoàn thành</div>
+          </div>
         </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background: #fffbeb; color: #d97706;">⏳</div>
-        <div>
-          <div class="stat-val" id="count_pending" style="color: #d97706;">0</div>
-          <div class="stat-label">Chờ duyệt</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background: #ecfdf5; color: #10b981;">✓</div>
-        <div>
-          <div class="stat-val" id="count_confirmed" style="color: #10b981;">0</div>
-          <div class="stat-label">Đã phê duyệt</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background: #fef2f2; color: #ef4444;">✕</div>
-        <div>
-          <div class="stat-val" id="count_rejected" style="color: #ef4444;">0</div>
-          <div class="stat-label">Đã từ chối</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Toolbar -->
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem;">
-      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <button id="filter_all" class="btn btn-primary">Tất Cả</button>
-        <button id="filter_pending" class="btn btn-outline">⏳ Chờ Duyệt</button>
-        <button id="filter_confirmed" class="btn btn-outline">✓ Đã Duyệt</button>
-        <button id="filter_rejected" class="btn btn-outline">✕ Đã Từ Chối</button>
+      <!-- Toolbar & Status Filters -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem;">
+        <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+          <button id="filter_all" class="btn btn-primary" style="font-size: 0.775rem;">Tất Cả</button>
+          <button id="filter_pending" class="btn btn-outline" style="font-size: 0.775rem;">⏳ Chờ Duyệt</button>
+          <button id="filter_confirmed" class="btn btn-outline" style="font-size: 0.775rem;">✓ Đã Xác Nhận</button>
+          <button id="filter_rescheduled" class="btn btn-outline" style="font-size: 0.775rem;">🔄 Đã Dời</button>
+          <button id="filter_cancelled" class="btn btn-outline" style="font-size: 0.775rem;">✕ Đã Hủy</button>
+          <button id="filter_completed" class="btn btn-outline" style="font-size: 0.775rem;">🎯 Hoàn Thành</button>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-danger" id="btnOpenBlockModal" style="font-size: 0.8rem;">
+            🚫 Khóa Ca Nhanh
+          </button>
+          <button class="btn btn-outline" onclick="loadAdminBookings()" style="font-size: 0.8rem;">
+            🔄 Tải lại
+          </button>
+        </div>
       </div>
 
-      <div style="display: flex; gap: 0.5rem;">
-        <button class="btn btn-danger" id="btnOpenBlockModal" style="font-size: 0.8rem;">
-          🚫 Khóa Ca Đột Xuất Cho Sếp
-        </button>
-        <button class="btn btn-outline" onclick="loadAdminBookings()" style="font-size: 0.8rem;">
-          🔄 Tải lại
-        </button>
+      <!-- Booking List Container -->
+      <div id="bookingsListContainer">
+        <!-- Rendered dynamically by admin.js -->
       </div>
-    </div>
-
-    <!-- Booking List Container -->
-    <div id="bookingsListContainer">
-      <!-- Rendered dynamically by admin.js -->
-    </div>
     </section>
   </main>
 
   <!-- MODAL LIVE EMAIL COMPOSER -->
   <div id="composerModal" class="modal-overlay hidden">
-    <div class="modal-box" style="max-width: 680px;">
+    <div class="modal-box" style="max-width: 720px;">
       <div class="modal-header">
         <div>
-          <h3>Trình Soạn Email Phản Hồi Doanh Nghiệp</h3>
+          <h3>Trình Soạn Email & Xử Lý Lịch Hẹn</h3>
           <p id="composerBookingSubtitle">Gửi đối tác</p>
         </div>
         <button type="button" class="modal-close-btn" id="composerCloseBtn">&times;</button>
@@ -147,15 +170,23 @@
         <input type="hidden" id="composerBookingId">
         <input type="hidden" id="composerAction" value="confirm">
 
-        <div class="form-group">
-          <label class="form-label">Email Người Nhận</label>
-          <input type="text" id="composerGuestEmail" class="form-control" readonly style="font-family: monospace;">
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label class="form-label">Người Nhận</label>
+            <input type="text" id="composerGuestEmail" class="form-control" readonly style="font-family: monospace;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Google Calendar Link (Tự Động Sinh)</label>
+            <a id="composerGgCalLink" href="#" target="_blank" class="form-control" style="color: #2563eb; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; font-size: 0.75rem;">
+              📅 Xem liên kết Google Calendar
+            </a>
+          </div>
         </div>
 
         <!-- Quick Template Selector Pills -->
         <div class="form-group">
           <label class="form-label" style="display: flex; justify-content: space-between;">
-            <span>Mẫu Thư Soạn Sẵn (Bấm Để Áp Dụng)</span>
+            <span>Mẫu Thư Phù Hợp (Bấm Để Áp Dụng)</span>
             <a href="/admin/templates" target="_blank" style="font-size: 0.725rem; color: #2563eb; text-decoration: none;">⚙️ Tùy chỉnh mẫu</a>
           </label>
           <div class="composer-template-pills" id="composerTemplatePills">
@@ -170,7 +201,7 @@
 
         <div class="form-group">
           <label class="form-label">Nội Dung Thư Soạn Thảo (Body Text) *</label>
-          <textarea id="composerBody" rows="9" class="form-control" style="font-family: inherit; font-size: 0.85rem; line-height: 1.6;" required></textarea>
+          <textarea id="composerBody" rows="8" class="form-control" style="font-family: inherit; font-size: 0.85rem; line-height: 1.6;" required></textarea>
           
           <!-- Quick Variable Tags Helper -->
           <div class="tag-helper-bar">
@@ -178,24 +209,40 @@
             <span class="tag-pill" onclick="insertTag('{ten_cty}')">{ten_cty}</span>
             <span class="tag-pill" onclick="insertTag('{ngay_hop}')">{ngay_hop}</span>
             <span class="tag-pill" onclick="insertTag('{gio_hop}')">{gio_hop}</span>
+            <span class="tag-pill" onclick="insertTag('{dia_diem}')">{dia_diem}</span>
+            <span class="tag-pill" onclick="insertTag('{google_calendar_link}')">{google_calendar_link}</span>
             <span class="tag-pill" onclick="insertTag('{nguoi_lien_he}')">{nguoi_lien_he}</span>
           </div>
         </div>
 
-        <!-- Actions -->
-        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 0.85rem; font-size: 0.775rem; color: #1e40af; margin-top: 0.5rem;">
-          💡 <strong>Không lo bị chặn cổng mạng:</strong> Bấm nút bên dưới hệ thống sẽ lưu trạng thái duyệt vào DB và <strong>tự động mở tab soạn thư Gmail hoặc phần mềm Mail của bạn</strong> với toàn bộ nội dung đã soạn sẵn!
+        <!-- Action Buttons Group (Phê duyệt, Dời lịch, Từ chối, Hoàn thành) -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem;">
+          <div style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 0.5rem;">
+            Chọn Hành Động Cập Nhật Trạng Thái & Gửi Thư:
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.5rem;">
+            <button type="button" class="btn btn-primary" onclick="executeActionAndSend('confirm', 'gmail')" style="font-size: 0.775rem;">
+              ✓ Phê Duyệt & Mở Gmail
+            </button>
+            <button type="button" class="btn btn-outline" style="border-color: #4338ca; color: #4338ca; font-size: 0.775rem;" onclick="executeActionAndSend('reschedule', 'gmail')">
+              🔄 Dời Lịch & Mở Gmail
+            </button>
+            <button type="button" class="btn btn-outline" style="border-color: #dc2626; color: #dc2626; font-size: 0.775rem;" onclick="executeActionAndSend('cancel', 'gmail')">
+              ✕ Từ Chối & Mở Gmail
+            </button>
+            <button type="button" class="btn btn-outline" style="border-color: #15803d; color: #15803d; font-size: 0.775rem;" onclick="executeActionAndSend('complete', 'gmail')">
+              🎯 Đã Hoàn Thành
+            </button>
+          </div>
         </div>
 
         <div class="modal-footer" style="padding: 0; margin-top: 0.75rem; background: transparent; border: none; justify-content: space-between; align-items: center;">
           <button type="button" class="btn btn-outline" id="composerCancelBtn">Đóng</button>
           
           <div style="display: flex; gap: 0.5rem;">
-            <button type="button" class="btn btn-primary" onclick="confirmAndLaunchMail('gmail')">
-              ✉️ Mở Gmail Web
-            </button>
-            <button type="button" class="btn btn-outline" style="border-color: #2563eb; color: #2563eb;" onclick="confirmAndLaunchMail('mailto')">
-              📬 Mở Mail App (mailto)
+            <button type="button" class="btn btn-outline" style="border-color: #2563eb; color: #2563eb;" onclick="executeActionAndSend(document.getElementById('composerAction').value, 'mailto')">
+              📬 Mở Mail App (mailto:)
             </button>
           </div>
         </div>
@@ -208,7 +255,7 @@
     <div class="modal-box" style="max-width: 480px;">
       <div class="modal-header">
         <div>
-          <h3>Khóa Ca Làm Việc Của Sếp</h3>
+          <h3>Khóa Ca Làm Việc Của Giám Đốc</h3>
           <p>Khung giờ bị khóa sẽ chuyển sang trạng thái "Đã kín"</p>
         </div>
         <button type="button" class="modal-close-btn" id="blockSlotCloseBtn">&times;</button>
